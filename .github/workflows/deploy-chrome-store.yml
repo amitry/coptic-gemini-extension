@@ -1,0 +1,30 @@
+name: Package & Publish to Chrome Web Store
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Extension Zip Package
+        run: |
+          zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md
+
+      - name: Upload & Publish to Chrome Web Store
+        uses: chrome-stats/chrome-extension-upload-action@v2
+        with:
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          zip-path: 'coptic-gemini-assist.zip'
+          publish: true
