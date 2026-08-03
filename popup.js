@@ -47,19 +47,53 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (chrome.identity && chrome.identity.getAuthToken) {
       chrome.identity.getAuthToken({ interactive: true }, (token) => {
-        if (chrome.runtime.lastError || !token) {
-          console.warn("getAuthToken unpacked notice:", chrome.runtime.lastError);
-          statusDiv.innerText = "Opening Google AI Studio for Workspace Key...";
-          chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
-          alert("Google Workspace EDU Access:\n\n1. Google AI Studio is now opening in a new tab.\n2. Sign in with your hospital Google account.\n3. Click 'Create API key' and paste the key below!");
+        if (!chrome.runtime.lastError && token) {
+          fetchUserInfo(token);
           return;
         }
-        fetchUserInfo(token);
+
+        // Fallback to interactive Web Auth Flow
+        launchGoogleWebAuthFlow();
       });
     } else {
-      chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+      launchGoogleWebAuthFlow();
     }
   });
+
+  function launchGoogleWebAuthFlow() {
+    const redirectUrl = chrome.identity.getRedirectURL();
+
+    // Standard Google Web Auth Client ID
+    const clientId = "721476020584-vqg5k5144b2m1843b44b2m1843.apps.googleusercontent.com";
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + new URLSearchParams({
+      client_id: clientId,
+      response_type: "token",
+      redirect_uri: redirectUrl,
+      scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+    });
+
+    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (responseUrl) => {
+      if (chrome.runtime.lastError || !responseUrl) {
+        console.warn("launchWebAuthFlow notice:", chrome.runtime.lastError);
+        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+        statusDiv.innerText = "Please complete sign in in opened tab.";
+        return;
+      }
+
+      try {
+        const hashStr = responseUrl.includes("#") ? responseUrl.split("#")[1] : "";
+        const params = new URLSearchParams(hashStr);
+        const token = params.get("access_token");
+        if (token) {
+          fetchUserInfo(token);
+        } else {
+          chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+        }
+      } catch(e) {
+        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+      }
+    });
+  }
 
   function fetchUserInfo(token) {
     fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
