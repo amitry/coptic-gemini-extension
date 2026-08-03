@@ -2,40 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Coptic Gemini Assist - Local Test Suite</title>
+  <title>Coptic Gemini Assist - Unumed EHR Test Simulator</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.5; color: #1e293b; background: #f8fafc; }
-    .card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px; border: 1px solid #e2e8f0; }
-    h1 { color: #0d5c75; margin-top: 0; }
-    h2 { color: #0f766e; font-size: 18px; margin-top: 0; }
-    textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
-    .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #1e40af; margin-bottom: 16px; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 960px; margin: 24px auto; padding: 20px; line-height: 1.5; color: #1e293b; background: #f1f5f9; }
+    .ehr-header { background: #0d5c75; color: white; padding: 16px 24px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
+    .ehr-header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+    .ehr-patient-bar { background: #0f766e; color: white; padding: 12px 24px; font-size: 13px; font-weight: 600; display: flex; gap: 20px; flex-wrap: wrap; }
+    .ehr-main { background: white; padding: 24px; border-radius: 0 0 12px 12px; border: 1px solid #cbd5e1; border-top: none; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+    .card-title { font-size: 14px; font-weight: 700; color: #0d5c75; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .vitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 13px; }
+    .vital-pill { background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center; }
+    .vital-val { font-weight: 700; font-size: 15px; color: #0f766e; }
+    .vital-lbl { font-size: 11px; color: #64748b; text-transform: uppercase; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+    th { background: #e2e8f0; color: #334155; font-size: 11px; text-transform: uppercase; }
+    textarea { width: 100%; height: 110px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 13px; box-sizing: border-box; resize: vertical; }
+    .sim-btn { background: #0284c7; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .sim-btn:hover { background: #0369a1; }
+    .badge-pos { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }
   </style>
 </head>
 <body>
 
-  <h1>🏥 Coptic Gemini Assist - Test Workbench</h1>
-
-  <div class="info-box">
-    <b>ℹ️ Offline & Read-Only Testing Environment</b><br>
-    This page allows you to test note analysis, de-identification, and AI decision support without needing write access in Unumed.
-    You can also use the floating <b>✨ Coptic Gemini Assistant</b> button in the bottom-right corner of any page in Unumed!
+  <div class="ehr-header">
+    <h1>🏥 COPTIC HOSPITAL - UNUMED EHR SIMULATOR</h1>
+    <button id="dispatchDataBtn" class="sim-btn" style="background:#10b981;">⚡ Reload Simulated EHR Payload</button>
   </div>
 
-  <div class="card">
-    <h2>Simulated Clinical Note Entry (Doctor Observation)</h2>
-    <p style="font-size: 13px; color: #64748b;">Type or paste a sample clinical note below. The extension's inline <b>✨ Gemini Assist</b> button will appear directly under the text area.</p>
-    
-    <textarea id="sample-note" placeholder="Example: 4yo male presenting with high grade fever 39.1C, rigors, and vomiting for 3 days. RDT positive for P. falciparum. Weight 16kg."></textarea>
+  <div class="ehr-patient-bar">
+    <span>👤 Patient: <b>MWANSA NICHOLAS KAUNDA</b></span>
+    <span>🆔 MRN: <b>LU32693/2024</b></span>
+    <span>🎂 DOB: <b>05-Nov-2022 (3yo Male)</b></span>
+    <span>💳 Payer: <b>SES Insurance</b></span>
   </div>
 
-  <div class="card">
-    <h2>Simulated Progress Note / Triage Area</h2>
-    <div contenteditable="true" style="min-height: 80px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
-      Patient NRC 123456/78/1, phone 0977123456. Complaining of severe headache and dry cough.
+  <div class="ehr-main">
+
+    <div class="grid-2">
+      <!-- Vitals Card -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">🩺 Triage Vitals & Anthropometrics</div>
+        <div class="vitals-grid">
+          <div class="vital-pill">
+            <div class="vital-val">21.0 kg</div>
+            <div class="vital-lbl">Weight</div>
+          </div>
+          <div class="vital-pill">
+            <div class="vital-val">38.8 °C</div>
+            <div class="vital-lbl">Temp</div>
+          </div>
+          <div class="vital-pill">
+            <div class="vital-val">124 bpm</div>
+            <div class="vital-lbl">Pulse</div>
+          </div>
+          <div class="vital-pill">
+            <div class="vital-val">110 cm</div>
+            <div class="vital-lbl">Height</div>
+          </div>
+          <div class="vital-pill">
+            <div class="vital-val">17.3</div>
+            <div class="vital-lbl">BMI</div>
+          </div>
+          <div class="vital-pill">
+            <div class="vital-val">96%</div>
+            <div class="vital-lbl">SpO2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Orders -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">💊 Active Medications & Orders</div>
+        <table>
+          <thead>
+            <tr><th>Order / Medication</th><th>Date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Paracetamol 250mg/5ml Syrup</td><td>03-Aug-2026</td><td>Active</td></tr>
+            <tr><td>IV Normal Saline 500ml</td><td>03-Aug-2026</td><td>Active</td></tr>
+            <tr><td>Oral Rehydration Salts (ORS)</td><td>03-Aug-2026</td><td>Active</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Lab Results -->
+    <div class="card">
+      <div class="card-title">🧪 Recent Laboratory Results</div>
+      <table>
+        <thead>
+          <tr><th>Test Name</th><th>Result / Findings</th><th>Reference Range</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Malaria RDT</b></td><td><span class="badge-pos">POSITIVE (P. falciparum)</span></td><td>Negative</td><td>03-Aug-2026</td></tr>
+          <tr><td><b>Full Blood Count (FBC)</b></td><td>Hb: 9.2 g/dL | WBC: 14.5 x10^9/L | Plt: 110 x10^9/L</td><td>Hb 11.5-15.5 | WBC 4.0-11.0</td><td>03-Aug-2026</td></tr>
+          <tr><td><b>Urine LAM (TB)</b></td><td><span class="badge-pos">POSITIVE</span></td><td>Negative</td><td>31-Mar-2024</td></tr>
+          <tr><td><b>ESR (Erythrocyte Sedimentation Rate)</b></td><td>65 mm/hr</td><td>0 - 15 mm/hr</td><td>31-Mar-2024</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Doctor Note Form -->
+    <div class="card">
+      <div class="card-title">
+        <span>📋 Clinician Entry Form (Phase 1 Test Workbench)</span>
+        <span style="font-size: 11px; font-weight: normal; color: #64748b;">Try clicking <b>✨ Gemini Assist</b> below to generate structured SOAP notes & ICD-10 codes</span>
+      </div>
+
+      <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 6px; color: #334155;">Clinical Observations & History:</label>
+      <textarea id="doctor-note" placeholder="Type or edit clinical note here...">3yo male child brought by mother presenting with high grade fever 38.8C, vomiting x 2 days, poor oral intake, and lethargy. RDT positive for P. falciparum. Weight 21kg. NRC 123456/78/1, phone 0977123456.</textarea>
+    </div>
+
   </div>
 
+  <script>
+    // Simulate dispatching Unumed GraphQL payloads to content.js
+    function dispatchUnumedPayloads() {
+      const mockEhrDocPayload = {
+        type: "UNUMED_RECON_DATA",
+        endpoint: "https://backend-capetown.unumed.net/graphql",
+        method: "POST",
+        graphqlOperation: "EhrEntryDoc",
+        responseBody: {
+          data: {
+            ehrEntry: {
+              clinicalNote: {
+                anthropometric: { weight: 21, height: 110, bmi: 17.3 },
+                patientSession: {
+                  _payer: "SES Insurance",
+                  patient: {
+                    id: "sim_patient_123",
+                    fullName: "MWANSA NICHOLAS KAUNDA",
+                    genderString: "Male",
+                    birthDate: 1667606400000,
+                    medicalRecordNumber: "LU32693/2024"
+                  }
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const mockLabPayload = {
+        type: "UNUMED_RECON_DATA",
+        endpoint: "https://backend-capetown.unumed.net/graphql",
+        method: "POST",
+        graphqlOperation: "searchPatientEhrLab",
+        responseBody: {
+          data: {
+            searchPatientEhrLab: {
+              result: [
+                { userProcedureName: "Malaria RDT (P. falciparum)", createdDate: Date.now() },
+                { userProcedureName: "Full Blood Count (FBC)", createdDate: Date.now() },
+                { userProcedureName: "Urine LAM (TB)", createdDate: 1711842385684 }
+              ]
+            }
+          }
+        }
+      };
+
+      const mockOrdersPayload = {
+        type: "UNUMED_RECON_DATA",
+        endpoint: "https://backend-capetown.unumed.net/graphql",
+        method: "POST",
+        graphqlOperation: "patientOngoingOrders",
+        responseBody: {
+          data: {
+            patientOngoingOrders: {
+              result: [
+                { userProcedureName: "Paracetamol 250mg/5ml Syrup", createdDate: Date.now() },
+                { userProcedureName: "IV Normal Saline 500ml", createdDate: Date.now() }
+              ]
+            }
+          }
+        }
+      };
+
+      window.postMessage(mockEhrDocPayload, "*");
+      window.postMessage(mockLabPayload, "*");
+      window.postMessage(mockOrdersPayload, "*");
+      console.log("⚡ Simulated Unumed EHR GraphQL payloads dispatched to content.js");
+    }
+
+    document.getElementById("dispatchDataBtn").addEventListener("click", () => {
+      dispatchUnumedPayloads();
+      alert("Simulated Unumed chart payload dispatched! Now click ✨ Gemini Assist to generate Phase 1 SOAP note & ICD-10 codes.");
+    });
+
+    // Auto-dispatch on page load after a brief delay
+    window.addEventListener("load", () => {
+      setTimeout(dispatchUnumedPayloads, 500);
+    });
+  </script>
 </body>
 </html>
