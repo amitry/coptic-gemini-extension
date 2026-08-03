@@ -28,6 +28,17 @@ Coptic Gemini Assist is a Chrome Extension designed to provide real-time, contex
 
 ---
 
+## 🗺️ Product Roadmap
+
+View the full development roadmap and release phases in [`ROADMAP.md`](ROADMAP.md):
+
+* **Phase 1 (✅ Completed)**: Structured SOAP Note Generator, Automated EHR Context Aggregator, Interactive ICD-10 Code Chips, 1-Click Google Workspace SSO.
+* **Phase 2 (In Progress)**: Hands-free Voice Dictation (`🎙️ Dictate`) & Speech-to-Text.
+* **Phase 3 (Upcoming)**: Point-of-Care Interactive Q&A Chat & Zambian STG Dosing Calculator.
+* **Phase 4 (Upcoming)**: Drug Interaction Alerting & Abnormal Lab Trend Flagger.
+
+---
+
 ## 🚀 Quick Start for Doctors & Testers
 
 ### Method 1: Install Unpacked Extension (Developer Mode)
