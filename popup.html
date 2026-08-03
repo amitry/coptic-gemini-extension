@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { width: 300px; padding: 15px; font-family: Arial, sans-serif; font-size: 13px; }
+    h3 { margin-top: 0; color: #0d5c75; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input[type="text"] { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    button { width: 100%; padding: 8px; background: #0d5c75; color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 8px; }
+    button:hover { background: #094052; }
+    .secondary-btn { background: #6c757d; }
+    .secondary-btn:hover { background: #5a6268; }
+    #status { font-size: 11px; color: green; margin-bottom: 10px; }
+    .recon-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; font-size: 11px; max-height: 100px; overflow-y: auto; margin-bottom: 10px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h3>🏥 Coptic Gemini Assist</h3>
+  
+  <!-- Google Workspace OAuth SSO Section -->
+  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+    <label style="color: #166534; margin-bottom: 4px;">Authentication:</label>
+    <div id="userInfoBox" style="font-size: 11px; margin-bottom: 8px; color: #15803d; display: none;"></div>
+    <button id="googleLoginBtn" style="background: #4285f4; margin-bottom: 4px;">🌐 Sign in with Google Workspace</button>
+    <button id="googleLogoutBtn" class="secondary-btn" style="display: none; background: #94a3b8; font-size: 11px; padding: 4px;">Sign Out</button>
+  </div>
+
+  <details style="margin-bottom: 12px; font-size: 11px;">
+    <summary style="cursor: pointer; color: #64748b; font-weight: bold;">Advanced / Manual API Key</summary>
+    <div style="margin-top: 8px;">
+      <label for="apiKey">Gemini API Key:</label>
+      <input type="text" id="apiKey" placeholder="Paste API Key starting with AQ..." />
+    </div>
+  </details>
+
+  <label for="modelSelect">Gemini Model:</label>
+  <select id="modelSelect" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc;">
+    <option value="gemini-3.6-flash">Gemini 3.6 Flash (Default)</option>
+    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+  </select>
+
+  <button id="saveKeyBtn">Save Settings</button>
+  <div id="status"></div>
+
+  <hr style="border: 0.5px solid #eee; margin: 15px 0;">
+
+  <label>EHR Network Diagnostics:</label>
+  <div id="reconLogBox" class="recon-box">No Unumed traffic logged yet. Open Unumed and click through a chart.</div>
+  <button id="copyLogBtn" class="secondary-btn">📋 Copy Diagnostic Log</button>
+  <button id="clearLogBtn" class="secondary-btn" style="background:#dc3545;">🗑️ Clear Log</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>

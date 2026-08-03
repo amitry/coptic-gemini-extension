@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Coptic Hospital - Gemini Assistant (Diagnostic Build)",
+  "version": "1.1",
+  "description": "Clinical Decision Support Assistant & EHR Diagnostic Tool for Coptic Hospital",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Coptic Assistant Diagnostics"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*", "file:///*"],
+      "js": ["interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://*/*", "http://*/*", "file:///*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "world": "ISOLATED",
+      "all_frames": true
+    }
+  ]
+}

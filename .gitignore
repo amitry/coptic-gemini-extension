@@ -1,0 +1,14 @@
+# Telemetry & Large diagnostic dumps
+diag.txt
+diag2.txt
+*.log
+
+# Temporary files
+.tmp.*
+ scratch/
+.DS_Store
+
+# Virtual environments & node
+node_modules/
+venv/
+__pycache__/
