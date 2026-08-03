@@ -12,3 +12,6 @@ diag2.txt
 node_modules/
 venv/
 __pycache__/
+
+# Distribution zips
+*.zip
