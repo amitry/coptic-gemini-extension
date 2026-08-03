@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         googleLoginBtn.style.display = "none";
         googleLogoutBtn.style.display = "block";
       } else if (res.geminiApiKey) {
-        userInfoBox.innerHTML = `✓ Active API Key Saved`;
+        userInfoBox.innerHTML = `✓ Active Workspace Key Saved`;
         userInfoBox.style.display = "block";
         googleLoginBtn.style.display = "block";
         googleLogoutBtn.style.display = "none";
@@ -52,48 +52,15 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // Fallback to interactive Web Auth Flow
-        launchGoogleWebAuthFlow();
+        // Unpacked dev mode notice
+        statusDiv.innerText = "Opening Google AI Studio...";
+        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+        alert("Google Workspace Access:\n\n• For local unpacked testing: Click 'Create API key' in Google AI Studio (opening in new tab) and paste the key below.\n• Production Web Store Build: 1-Click Workspace SSO will authenticate natively once approved on the Chrome Web Store!");
       });
     } else {
-      launchGoogleWebAuthFlow();
+      chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
     }
   });
-
-  function launchGoogleWebAuthFlow() {
-    const redirectUrl = chrome.identity.getRedirectURL();
-
-    // Standard Google Web Auth Client ID
-    const clientId = "721476020584-vqg5k5144b2m1843b44b2m1843.apps.googleusercontent.com";
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + new URLSearchParams({
-      client_id: clientId,
-      response_type: "token",
-      redirect_uri: redirectUrl,
-      scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
-    });
-
-    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (responseUrl) => {
-      if (chrome.runtime.lastError || !responseUrl) {
-        console.warn("launchWebAuthFlow notice:", chrome.runtime.lastError);
-        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
-        statusDiv.innerText = "Please complete sign in in opened tab.";
-        return;
-      }
-
-      try {
-        const hashStr = responseUrl.includes("#") ? responseUrl.split("#")[1] : "";
-        const params = new URLSearchParams(hashStr);
-        const token = params.get("access_token");
-        if (token) {
-          fetchUserInfo(token);
-        } else {
-          chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
-        }
-      } catch(e) {
-        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
-      }
-    });
-  }
 
   function fetchUserInfo(token) {
     fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
