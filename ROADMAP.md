@@ -23,10 +23,10 @@ A comprehensive product roadmap for the **Coptic Gemini Assist** clinical decisi
 
 ---
 
-## 💬 Phase 3: Point-of-Care Interactive Q&A & Clinical Calculator
+## 💬 Phase 3: Point-of-Care Interactive Q&A & Clinical Calculator (✅ Completed)
 
-- [ ] **Interactive Clinical Q&A Sidekick Chat**: Sidekick drawer allowing doctors to ask follow-up questions about the active patient chart (e.g., *"What is the pediatric ART dosing for a 21kg child?"*).
-- [ ] **Zambian STG Dosing & Protocol Calculator**: Instant weight-based drug dosage calculator aligned with the Zambia Standard Treatment Guidelines.
+- [x] **Interactive Clinical Q&A Sidekick Chat**: Live conversational drawer allowing doctors to ask follow-up questions about the active chart (e.g., *"What if RDT is negative? What is 2nd line ART?"*).
+- [x] **Zambian STG Weight-Based Dosing Calculator**: Instant automated dosage calculations for Artemether-Lumefantrine (Coartem), Paracetamol, Amoxicillin, and Pediatric ART based on patient weight.
 
 ---
 

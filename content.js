@@ -243,7 +243,53 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     cleanText = cleanText.replace(/\n/g, '<br>');
 
-    return `${icd10SectionHtml}${cleanText}`;
+    // Automatically check for patient weight in context or note
+    let calcHtml = "";
+    if (activePatientContext?.vitals?.weight) {
+      calcHtml = computeZambianSTGDosages(activePatientContext.vitals.weight);
+    } else {
+      const weightMatch = rawText.match(/\b(?:weight|wt|wtd)[\s:]*(\d+(?:\.\d+)?)\s*kg\b/i);
+      if (weightMatch && weightMatch[1]) {
+        calcHtml = computeZambianSTGDosages(parseFloat(weightMatch[1]));
+      }
+    }
+
+    return `${calcHtml}${icd10SectionHtml}${cleanText}`;
+  }
+
+  // Phase 3: Zambian STG Weight-Based Dosing Calculator
+  function computeZambianSTGDosages(weightKg) {
+    if (!weightKg || isNaN(weightKg) || weightKg <= 0) return "";
+
+    let coartemDose = "";
+    if (weightKg < 15) coartemDose = "1 tablet Twice Daily x 3 days";
+    else if (weightKg < 25) coartemDose = "2 tablets Twice Daily x 3 days";
+    else if (weightKg < 35) coartemDose = "3 tablets Twice Daily x 3 days";
+    else coartemDose = "4 tablets Twice Daily x 3 days";
+
+    const paracetamolLow = Math.round(weightKg * 10);
+    const paracetamolHigh = Math.round(weightKg * 15);
+
+    const amoxLow = Math.round((weightKg * 20) / 3);
+    const amoxHigh = Math.round((weightKg * 40) / 3);
+
+    return `
+      <div class="gemini-calc-box">
+        <div class="gemini-calc-header">🧮 Zambian STG Dosing Calculator (Patient Weight: ${weightKg} kg)</div>
+        <div class="gemini-calc-row">
+          <span><b>Artemether-Lumefantrine (Coartem)</b>:</span>
+          <span><b>${coartemDose}</b></span>
+        </div>
+        <div class="gemini-calc-row">
+          <span><b>Paracetamol Syrup/Tab (10-15 mg/kg QID)</b>:</span>
+          <span><b>${paracetamolLow}mg - ${paracetamolHigh}mg QID</b> (max 4x/day)</span>
+        </div>
+        <div class="gemini-calc-row">
+          <span><b>Amoxicillin (20-40 mg/kg/day TID)</b>:</span>
+          <span><b>${amoxLow}mg - ${amoxHigh}mg TID</b> x 5-7 days</span>
+        </div>
+      </div>
+    `;
   }
 
   function deidentifyText(text) {
@@ -487,6 +533,16 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
         <div id="gemini-modal-result" class="gemini-modal-body" style="display: none; border-top: 1px solid #eee; padding-top: 12px;"></div>
 
+        <!-- Phase 3: Point-of-Care Interactive Q&A Chat -->
+        <div id="gemini-chat-section" class="gemini-chat-container" style="display: none;">
+          <div class="gemini-chat-title">💬 Point-of-Care Clinical Q&A Chat (Ask Zambian STG follow-up questions)</div>
+          <div id="gemini-chat-history" class="gemini-chat-history"></div>
+          <div class="gemini-chat-input-bar">
+            <input type="text" id="gemini-chat-input" placeholder="Ask follow-up question (e.g. What if RDT is negative? Pediatric ART dosing?)..." />
+            <button id="gemini-chat-send-btn" class="gemini-assist-btn" style="margin: 0; padding: 6px 14px;">Send</button>
+          </div>
+        </div>
+
         <div class="gemini-modal-actions">
           <button id="gemini-copy-btn" style="display: none;">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
@@ -500,8 +556,14 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const resultDiv = document.getElementById("gemini-modal-result");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
+    const chatSection = document.getElementById("gemini-chat-section");
+    const chatHistory = document.getElementById("gemini-chat-history");
+    const chatInput = document.getElementById("gemini-chat-input");
+    const chatSendBtn = document.getElementById("gemini-chat-send-btn");
 
     setupVoiceDictation(inputArea, modalDictateBtn);
+
+    let activeChatPromptContext = "";
 
     runBtn.onclick = async () => {
       const userText = inputArea.value.trim();
@@ -525,17 +587,18 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
         try {
           const freshContext = buildFormattedPatientContext();
+          activeChatPromptContext = `Clinician Note: ${userText}\n${freshContext}`;
           const combinedPrompt = `Analyze these clinical notes according to Zambian guidelines:\n${userText}${freshContext}`;
           const resultText = await callGemini({ apiKey, googleAuthToken }, combinedPrompt, selectedModel);
           
           const formattedHtml = formatClinicalResponseHTML(resultText);
           resultDiv.innerHTML = formattedHtml;
           resultDiv.style.display = "block";
+          chatSection.style.display = "block";
           copyBtn.style.display = "inline-block";
           copyBtn.innerText = "📋 Copy SOAP Note";
 
           copyBtn.onclick = () => {
-            // Copy plain text clean SOAP note
             const plainSOAP = resultText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
             navigator.clipboard.writeText(plainSOAP).then(() => {
               alert("SOAP Note copied to clipboard!");
@@ -548,6 +611,46 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
           runBtn.disabled = false;
         }
       });
+    };
+
+    // Phase 3: Interactive Q&A Chat Handler
+    async function sendChatMessage() {
+      const question = chatInput.value.trim();
+      if (!question) return;
+
+      chatInput.value = "";
+      
+      const userBubble = document.createElement("div");
+      userBubble.className = "gemini-chat-bubble gemini-chat-user";
+      userBubble.innerText = question;
+      chatHistory.appendChild(userBubble);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      const aiBubble = document.createElement("div");
+      aiBubble.className = "gemini-chat-bubble gemini-chat-ai";
+      aiBubble.innerText = "⏳ Thinking...";
+      chatHistory.appendChild(aiBubble);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      chrome.storage.sync.get(['geminiApiKey', 'googleAuthToken', 'selectedModel'], async (res) => {
+        const apiKey = res.geminiApiKey;
+        const googleAuthToken = res.googleAuthToken;
+        const selectedModel = res.selectedModel || "gemini-3.6-flash";
+
+        try {
+          const qPrompt = `Context:\n${activeChatPromptContext}\n\nClinician Follow-up Question: ${question}\n\nProvide a concise, direct clinical answer based on the Zambia Standard Treatment Guidelines (STG).`;
+          const ansText = await callGemini({ apiKey, googleAuthToken }, qPrompt, selectedModel);
+          aiBubble.innerHTML = ansText.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        } catch (err) {
+          aiBubble.innerText = `Error: ${err.message}`;
+        }
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      });
+    }
+
+    chatSendBtn.onclick = sendChatMessage;
+    chatInput.onkeydown = (e) => {
+      if (e.key === "Enter") sendChatMessage();
     };
 
     closeBtn.onclick = () => {
