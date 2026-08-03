@@ -124,3 +124,68 @@
   border-color: #0d9488;
   box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
 }
+
+/* Phase 1: SOAP Note & ICD-10 Styling */
+.gemini-icd10-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.gemini-icd10-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: #0f4c81;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gemini-icd10-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gemini-icd10-chip {
+  background: #ffffff;
+  border: 1px solid #0284c7;
+  color: #0369a1;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.gemini-icd10-chip:hover {
+  background: #e0f2fe;
+  border-color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.gemini-soap-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.gemini-soap-header {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0f766e;
+  border-bottom: 2px solid #ccfbf1;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}

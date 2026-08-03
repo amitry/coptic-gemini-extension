@@ -180,11 +180,71 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
   // 2. System Prompt & Gemini API integration
   const ZAMBIA_CLINICAL_SYSTEM_PROMPT = `
 You are an expert clinical decision support assistant at Coptic Hospital in Lusaka, Zambia.
-1. Ground all medical recommendations in the Zambia Standard Treatment Guidelines (STG) and National ART/Malaria Protocols.
-2. Maintain strict clinical brevity using concise bullet points for doctors and clinical officers.
-3. Suggest appropriate ICD-10 diagnostic codes where applicable.
-4. Synthesize provided patient context (vitals, labs, medications, history) with clinician notes to produce actionable recommendations.
+Synthesize clinician notes and extracted patient EHR context into a structured SOAP Note and ICD-10 Coding recommendation.
+
+Always follow this EXACT output format:
+
+### ICD10_CODES
+Provide 1 to 4 relevant ICD-10 codes based on findings. Format each code on its own line:
+[CODE] - [Description]
+
+### SUBJECTIVE (S)
+Bullet points summarizing chief complaints, symptoms, duration, and patient history.
+
+### OBJECTIVE (O)
+Synthesized bullet points of vitals (weight, temp, BP, pulse, BMI), lab report metrics, and imaging.
+
+### ASSESSMENT (A)
+Differential diagnoses and clinical reasoning grounded strictly in the Zambia Standard Treatment Guidelines (STG) and National ART/Malaria Protocols.
+
+### PLAN (P)
+Actionable bullet points for diagnostic investigations, first-line Zambian STG medication regimens (with dosage/route), and follow-up.
 `;
+
+  function formatClinicalResponseHTML(rawText) {
+    let html = rawText;
+
+    // Extract & render ICD-10 Section
+    let icd10SectionHtml = "";
+    const icd10Match = rawText.match(/### ICD10_CODES([\s\S]*?)(?=###|$)/i);
+    if (icd10Match && icd10Match[1]) {
+      const lines = icd10Match[1].trim().split("\n").filter(l => l.trim().length > 0);
+      const chipsHtml = lines.map(line => {
+        const cleanLine = line.replace(/^[*\-\s]+/, "").trim();
+        const parts = cleanLine.split(" - ");
+        const code = parts[0] ? parts[0].trim() : cleanLine;
+        const desc = parts[1] ? parts[1].trim() : "";
+        return `<button type="button" class="gemini-icd10-chip" data-code="${code}" onclick="navigator.clipboard.writeText('${code}'); this.innerText='✓ Copied ${code}'; setTimeout(() => this.innerText='📋 ${code}${desc ? ' - ' + desc : ''}', 1500);">📋 ${code}${desc ? ' - ' + desc : ''}</button>`;
+      }).join("");
+
+      if (chipsHtml) {
+        icd10SectionHtml = `
+          <div class="gemini-icd10-section">
+            <div class="gemini-icd10-title">🏷️ Suggested ICD-10 Diagnostic Codes (Click chip to copy code):</div>
+            <div class="gemini-icd10-chips">${chipsHtml}</div>
+          </div>
+        `;
+      }
+    }
+
+    // Remove raw ICD10 block from body text
+    let cleanText = rawText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
+
+    // Format SOAP Section Headers
+    cleanText = cleanText.replace(/### (SUBJECTIVE \(S\)|SUBJECTIVE)/gi, '<div class="gemini-soap-card"><div class="gemini-soap-header">📋 Subjective (S)</div>');
+    cleanText = cleanText.replace(/### (OBJECTIVE \(O\)|OBJECTIVE)/gi, '</div><div class="gemini-soap-card"><div class="gemini-soap-header">🩺 Objective (O)</div>');
+    cleanText = cleanText.replace(/### (ASSESSMENT \(A\)|ASSESSMENT)/gi, '</div><div class="gemini-soap-card"><div class="gemini-soap-header">🧠 Assessment (A) - Zambian STG</div>');
+    cleanText = cleanText.replace(/### (PLAN \(P\)|PLAN)/gi, '</div><div class="gemini-soap-card"><div class="gemini-soap-header">💊 Plan (P) - Treatment Protocol</div>');
+
+    if (cleanText.includes('gemini-soap-card')) {
+      cleanText += '</div>';
+    }
+
+    cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    cleanText = cleanText.replace(/\n/g, '<br>');
+
+    return `${icd10SectionHtml}${cleanText}`;
+  }
 
   function deidentifyText(text) {
     let clean = text;
@@ -366,13 +426,17 @@ You are an expert clinical decision support assistant at Coptic Hospital in Lusa
           const combinedPrompt = `Analyze these clinical notes according to Zambian guidelines:\n${userText}${freshContext}`;
           const resultText = await callGemini({ apiKey, googleAuthToken }, combinedPrompt, selectedModel);
           
-          resultDiv.innerHTML = resultText.replace(/\n/g, "<br>");
+          const formattedHtml = formatClinicalResponseHTML(resultText);
+          resultDiv.innerHTML = formattedHtml;
           resultDiv.style.display = "block";
           copyBtn.style.display = "inline-block";
+          copyBtn.innerText = "📋 Copy SOAP Note";
 
           copyBtn.onclick = () => {
-            navigator.clipboard.writeText(resultText).then(() => {
-              alert("AI Clinical Summary copied to clipboard!");
+            // Copy plain text clean SOAP note
+            const plainSOAP = resultText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
+            navigator.clipboard.writeText(plainSOAP).then(() => {
+              alert("SOAP Note copied to clipboard!");
             });
           };
         } catch (err) {
@@ -404,23 +468,26 @@ You are an expert clinical decision support assistant at Coptic Hospital in Lusa
       ? `<div class="gemini-context-badge">✓ Grounded with extracted EHR patient context (Labs/Vitals/Orders)</div>`
       : ``;
 
+    const formattedHtml = formatClinicalResponseHTML(text);
+
     modal.innerHTML = `
       <div class="gemini-modal-content">
         <h3>🏥 Coptic Hospital AI Clinical Assistant</h3>
         ${badgeHtml}
-        <div class="gemini-modal-body">${text.replace(/\n/g, "<br>")}</div>
+        <div class="gemini-modal-body">${formattedHtml}</div>
         <div class="gemini-modal-actions">
-          <button id="gemini-copy-btn">Insert into Note</button>
+          <button id="gemini-copy-btn">Insert SOAP Note into EHR</button>
           <button id="gemini-close-btn">Close</button>
         </div>
       </div>
     `;
 
     document.getElementById("gemini-copy-btn").onclick = () => {
+      const plainSOAP = text.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
       if (targetArea.value !== undefined) {
-        targetArea.value += `\n\n--- AI Clinical Summary ---\n${text}`;
+        targetArea.value += `\n\n--- AI Clinical Summary (Zambian STG) ---\n${plainSOAP}`;
       } else {
-        targetArea.innerText += `\n\n--- AI Clinical Summary ---\n${text}`;
+        targetArea.innerText += `\n\n--- AI Clinical Summary (Zambian STG) ---\n${plainSOAP}`;
       }
       modal.style.display = "none";
     };
