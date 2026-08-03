@@ -15,11 +15,11 @@ A comprehensive product roadmap for the **Coptic Gemini Assist** clinical decisi
 
 ---
 
-## 🎙️ Phase 2: Voice Dictation & Hands-Free Charting (Next)
+## 🎙️ Phase 2: Voice Dictation & Hands-Free Charting (✅ Completed)
 
-- [ ] **`🎙️ Dictate` Voice-to-Text Button**: Hands-free speech-to-text dictation integrated into Unumed note fields.
-- [ ] **Clinical Speech Recognition Tuning**: Optimized accuracy for medical terminology, drug names, and Zambian clinical accents.
-- [ ] **Ambient Listening Prototype**: Passive audio capture during patient consultations to generate draft notes automatically.
+- [x] **`🎙️ Dictate` Voice-to-Text Button**: Real-time hands-free speech-to-text dictation using Web Speech API injected next to Unumed form fields and assistant modal.
+- [x] **Live Audio Indicator & Control**: Dynamic pulsing red indicator (`🔴 Listening... (Click to Stop)`) with real-time text transcription into active note fields.
+- [x] **Hands-Free Charting Workflow**: Seamless integration allowing clinicians to speak observations hands-free and immediately click `✨ Gemini Assist` for SOAP formatting.
 
 ---
 

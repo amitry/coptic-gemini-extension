@@ -290,6 +290,89 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
   }
 
+  // Phase 2: Web Speech API Voice Dictation Engine
+  function setupVoiceDictation(targetElement, dictateBtn) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      dictateBtn.style.display = "none";
+      console.warn("Web Speech API not supported in this browser.");
+      return;
+    }
+
+    let recognition = null;
+    let isListening = false;
+
+    dictateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isListening && recognition) {
+        recognition.stop();
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        let finalTranscript = "";
+        const initialVal = targetElement.value !== undefined ? targetElement.value : targetElement.innerText;
+        if (initialVal.trim()) {
+          finalTranscript = initialVal.trim() + " ";
+        }
+
+        recognition.onstart = () => {
+          isListening = true;
+          dictateBtn.classList.add("recording");
+          dictateBtn.innerHTML = `🔴 Listening... (Click to Stop)`;
+        };
+
+        recognition.onresult = (event) => {
+          let interimTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + " ";
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          const currentText = finalTranscript + interimTranscript;
+          if (targetElement.value !== undefined) {
+            targetElement.value = currentText;
+          } else {
+            targetElement.innerText = currentText;
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+          if (event.error !== "no-speech") {
+            alert(`Voice Dictation Error: ${event.error}`);
+          }
+          stopDictation();
+        };
+
+        recognition.onend = () => {
+          stopDictation();
+        };
+
+        function stopDictation() {
+          isListening = false;
+          dictateBtn.classList.remove("recording");
+          dictateBtn.innerHTML = `🎙️ Dictate`;
+        }
+
+        recognition.start();
+      } catch(err) {
+        console.error("Failed to start speech recognition:", err);
+        alert(`Mic access error: ${err.message}`);
+      }
+    });
+  }
+
   function injectGeminiButtons() {
     const textareas = document.querySelectorAll("textarea, [contenteditable='true']");
     
@@ -297,17 +380,29 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       if (area.dataset.geminiInjected) return;
       area.dataset.geminiInjected = "true";
 
+      const container = document.createElement("div");
+      container.style.display = "inline-flex";
+      container.style.alignItems = "center";
+      container.style.gap = "6px";
+
       const btn = document.createElement("button");
       btn.innerText = "✨ Gemini Assist";
       btn.className = "gemini-assist-btn";
       btn.type = "button";
+
+      const dictateBtn = document.createElement("button");
+      dictateBtn.innerHTML = "🎙️ Dictate";
+      dictateBtn.className = "gemini-dictate-btn";
+      dictateBtn.type = "button";
+
+      setupVoiceDictation(area, dictateBtn);
 
       btn.addEventListener("click", async (e) => {
         e.preventDefault();
         const userText = area.value || area.innerText;
 
         if (!userText.trim()) {
-          alert("Please enter or paste clinical notes first.");
+          alert("Please enter, paste, or dictate clinical notes first.");
           return;
         }
 
@@ -339,7 +434,10 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
         });
       });
 
-      area.parentNode.insertBefore(btn, area.nextSibling);
+      container.appendChild(btn);
+      container.appendChild(dictateBtn);
+
+      area.parentNode.insertBefore(container, area.nextSibling);
     });
   }
 
@@ -379,17 +477,18 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       <div class="gemini-modal-content">
         <h3>🏥 Coptic Hospital AI Clinical Assistant</h3>
         ${badgeHtml}
-        <label style="font-weight: bold; font-size: 12px; display: block; margin-bottom: 6px;">Enter / Paste Clinical Observation or Patient Note:</label>
+        <label style="font-weight: bold; font-size: 12px; display: block; margin-bottom: 6px;">Enter, Paste, or Dictate Clinical Observation:</label>
         <textarea id="gemini-modal-input" class="gemini-modal-textarea" placeholder="e.g. 3yo male presenting with fever 38.5C, cough, and reduced oral intake for 2 days..."></textarea>
         
-        <div style="margin-bottom: 12px;">
+        <div style="margin-bottom: 12px; display: flex; gap: 8px;">
           <button id="gemini-modal-run-btn" class="gemini-assist-btn" style="padding: 8px 16px; font-size: 13px;">✨ Run Clinical Assistant</button>
+          <button id="gemini-modal-dictate-btn" class="gemini-dictate-btn" style="padding: 8px 16px; font-size: 13px; margin: 0;">🎙️ Dictate Note</button>
         </div>
 
         <div id="gemini-modal-result" class="gemini-modal-body" style="display: none; border-top: 1px solid #eee; padding-top: 12px;"></div>
 
         <div class="gemini-modal-actions">
-          <button id="gemini-copy-btn" style="display: none;">📋 Copy AI Recommendation</button>
+          <button id="gemini-copy-btn" style="display: none;">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
         </div>
       </div>
@@ -397,9 +496,12 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
     const inputArea = document.getElementById("gemini-modal-input");
     const runBtn = document.getElementById("gemini-modal-run-btn");
+    const modalDictateBtn = document.getElementById("gemini-modal-dictate-btn");
     const resultDiv = document.getElementById("gemini-modal-result");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
+
+    setupVoiceDictation(inputArea, modalDictateBtn);
 
     runBtn.onclick = async () => {
       const userText = inputArea.value.trim();
