@@ -18,21 +18,19 @@
 <body>
   <h3>🏥 Coptic Gemini Assist</h3>
   
-  <!-- Google Workspace OAuth SSO Section -->
+  <!-- Google Workspace Authentication Section -->
   <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
-    <label style="color: #166534; margin-bottom: 4px;">Authentication:</label>
+    <label style="color: #166534; margin-bottom: 4px;">Authentication (Workspace EDU):</label>
     <div id="userInfoBox" style="font-size: 11px; margin-bottom: 8px; color: #15803d; display: none;"></div>
-    <button id="googleLoginBtn" style="background: #4285f4; margin-bottom: 4px;">🌐 Sign in with Google Workspace</button>
+    <button id="googleLoginBtn" style="background: #4285f4; margin-bottom: 6px;">🌐 Sign in with Google Workspace</button>
+    <button id="getAiStudioKeyBtn" class="secondary-btn" style="background: #0f766e; color: white; font-size: 11px; margin-bottom: 4px;">🔑 Get Free Key from Google AI Studio</button>
     <button id="googleLogoutBtn" class="secondary-btn" style="display: none; background: #94a3b8; font-size: 11px; padding: 4px;">Sign Out</button>
   </div>
 
-  <details style="margin-bottom: 12px; font-size: 11px;">
-    <summary style="cursor: pointer; color: #64748b; font-weight: bold;">Advanced / Manual API Key</summary>
-    <div style="margin-top: 8px;">
-      <label for="apiKey">Gemini API Key:</label>
-      <input type="text" id="apiKey" placeholder="Paste API Key starting with AQ..." />
-    </div>
-  </details>
+  <div style="margin-bottom: 12px;">
+    <label for="apiKey" style="font-size: 11px; color: #475569;">Gemini API Key:</label>
+    <input type="text" id="apiKey" placeholder="Paste API Key starting with AQ..." />
+  </div>
 
   <label for="modelSelect">Gemini Model:</label>
   <select id="modelSelect" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc;">

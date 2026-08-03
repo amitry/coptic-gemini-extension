@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const reconLogBox = document.getElementById("reconLogBox");
   const googleLoginBtn = document.getElementById("googleLoginBtn");
   const googleLogoutBtn = document.getElementById("googleLogoutBtn");
+  const getAiStudioKeyBtn = document.getElementById("getAiStudioKeyBtn");
   const userInfoBox = document.getElementById("userInfoBox");
 
   function updateAuthUI() {
@@ -17,6 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
         userInfoBox.style.display = "block";
         googleLoginBtn.style.display = "none";
         googleLogoutBtn.style.display = "block";
+      } else if (res.geminiApiKey) {
+        userInfoBox.innerHTML = `✓ Active API Key Saved`;
+        userInfoBox.style.display = "block";
+        googleLoginBtn.style.display = "block";
+        googleLogoutBtn.style.display = "none";
       } else {
         userInfoBox.style.display = "none";
         googleLoginBtn.style.display = "block";
@@ -30,6 +36,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateAuthUI();
 
+  // Quick-link to Google AI Studio for free Workspace key
+  getAiStudioKeyBtn.addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+  });
+
   // Handle Google Workspace SSO Sign-In
   googleLoginBtn.addEventListener("click", () => {
     statusDiv.innerText = "Connecting to Google Workspace...";
@@ -37,15 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chrome.identity && chrome.identity.getAuthToken) {
       chrome.identity.getAuthToken({ interactive: true }, (token) => {
         if (chrome.runtime.lastError || !token) {
-          console.warn("getAuthToken error/notice:", chrome.runtime.lastError);
-          // Prompt user or fallback
-          statusDiv.innerText = "Sign in ready. Verify Chrome Profile SSO.";
+          console.warn("getAuthToken unpacked notice:", chrome.runtime.lastError);
+          statusDiv.innerText = "Opening Google AI Studio for Workspace Key...";
+          chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+          alert("Google Workspace EDU Access:\n\n1. Google AI Studio is now opening in a new tab.\n2. Sign in with your hospital Google account.\n3. Click 'Create API key' and paste the key below!");
           return;
         }
         fetchUserInfo(token);
       });
     } else {
-      statusDiv.innerText = "Chrome Identity API active.";
+      chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
     }
   });
 
@@ -89,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const model = modelSelect.value;
     chrome.storage.sync.set({ geminiApiKey: key, selectedModel: model }, () => {
       statusDiv.innerText = "Settings saved successfully!";
+      updateAuthUI();
       setTimeout(() => statusDiv.innerText = "", 2000);
     });
   });
