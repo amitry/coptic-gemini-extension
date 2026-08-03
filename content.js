@@ -1,7 +1,8 @@
-if (!window.hasCopticExtensionRun) {
+const isAllowedDomain = window.location.hostname.includes("unumed.net") || window.location.protocol === "file:";
+if (isAllowedDomain && !window.hasCopticExtensionRun) {
   window.hasCopticExtensionRun = true;
 
-  console.log("Coptic Assistant Diagnostic & Context Build Running!");
+  console.log("Coptic Assistant Running on Unumed!");
 
   // --- Patient Context Cache ---
   let activePatientContext = {
