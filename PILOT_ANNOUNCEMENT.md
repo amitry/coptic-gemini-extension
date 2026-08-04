@@ -52,10 +52,12 @@ All recommendations are strictly grounded in the **Zambia Standard Treatment Gui
 For complete, step-by-step installation instructions, view our official [**Installation & Setup Guide (`README.md`)**](README.md).
 
 ### Step 1: Install the Extension (1 Minute)
-1. Download and unzip **[`coptic-gemini-assist-v3.0.zip`](coptic-gemini-assist-v3.0.zip)** onto your computer.
-2. Open Google Chrome and navigate to `chrome://extensions`.
-3. Enable **Developer mode** (toggle in top right corner).
-4. Click **Load unpacked** and select the unzipped `coptic-gemini-extension` folder.
+1. Download the release zip from GitHub:
+   👉 **[Click to Download `coptic-gemini-assist-v3.0.zip`](https://github.com/amitry/coptic-gemini-extension/raw/main/coptic-gemini-assist-v3.0.zip)** *(or [Download Repository ZIP](https://github.com/amitry/coptic-gemini-extension/archive/refs/heads/main.zip))*.
+2. Unzip the downloaded folder on your computer.
+3. Open Google Chrome and navigate to `chrome://extensions`.
+4. Enable **Developer mode** (toggle switch in the top right corner).
+5. Click **Load unpacked** and select the unzipped `coptic-gemini-extension` folder.
 
 ### Step 2: Authenticate (Google Workspace EDU)
 1. Click the extension icon in the top right of Chrome to open the popup.

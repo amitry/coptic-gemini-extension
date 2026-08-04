@@ -48,11 +48,12 @@ View the full development roadmap and release phases in [`ROADMAP.md`](ROADMAP.m
 ## 🚀 Quick Start for Doctors & Testers
 
 ### Method 1: Install Unpacked Extension (Developer Mode)
-1. Download or clone this repository / extract `coptic-gemini-assist-v1.2.zip`.
-2. Open Google Chrome and go to `chrome://extensions`.
-3. Enable **Developer mode** in the top right corner.
-4. Click **Load unpacked** and select the extension folder.
-5. Open the extension popup, click **`🌐 Sign in with Google Workspace`**, and sign in with your hospital email.
+1. Download the release package: **[Click to Download `coptic-gemini-assist-v3.0.zip`](https://github.com/amitry/coptic-gemini-extension/raw/main/coptic-gemini-assist-v3.0.zip)** (or [Download Repository ZIP](https://github.com/amitry/coptic-gemini-extension/archive/refs/heads/main.zip)).
+2. Unzip the downloaded folder on your computer.
+3. Open Google Chrome and go to `chrome://extensions`.
+4. Enable **Developer mode** in the top right corner.
+5. Click **Load unpacked** and select the unzipped extension folder.
+6. Open the extension popup, click **`🌐 Sign in with Google Workspace`** (or click **`🔑 Get Free Key from Google AI Studio`**), and save settings.
 
 ---
 
