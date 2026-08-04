@@ -326,3 +326,31 @@
 .gemini-calc-row:last-child {
   border-bottom: none;
 }
+
+/* Ensure text selection and copy is NEVER blocked inside modal or outputs */
+.gemini-modal-ui, 
+.gemini-modal-content, 
+.gemini-modal-body, 
+.gemini-soap-card, 
+.gemini-icd10-section, 
+.gemini-chat-bubble {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* Persistent FAB indicator */
+.gemini-fab.has-saved {
+  background-color: #0284c7 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4) !important;
+}
+
+/* Smart Fill Button */
+.gemini-smartfill-btn {
+  background-color: #8b5cf6 !important;
+  color: white !important;
+}
+.gemini-smartfill-btn:hover {
+  background-color: #7c3aed !important;
+}

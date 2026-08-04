@@ -109,12 +109,31 @@
     <!-- Doctor Note Form -->
     <div class="card">
       <div class="card-title">
-        <span>📋 Clinician Entry Form (Phase 1 Test Workbench)</span>
-        <span style="font-size: 11px; font-weight: normal; color: #64748b;">Try clicking <b>✨ Gemini Assist</b> below to generate structured SOAP notes & ICD-10 codes</span>
+        <span>📋 Clinician Observation Entry & Smart Fill Target Form</span>
+        <span style="font-size: 11px; font-weight: normal; color: #64748b;">Click <b>✨ Gemini Assist</b> or <b>🎯 Smart Fill EHR Forms</b> to auto-populate all sections</span>
       </div>
 
-      <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 6px; color: #334155;">Clinical Observations & History:</label>
-      <textarea id="doctor-note" placeholder="Type or edit clinical note here...">3yo male child brought by mother presenting with high grade fever 38.8C, vomiting x 2 days, poor oral intake, and lethargy. RDT positive for P. falciparum. Weight 21kg. NRC 123456/78/1, phone 0977123456.</textarea>
+      <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: #334155;">Clinical Observation / History of Present Illness (Subjective):</label>
+      <textarea id="doctor-note" placeholder="Type or edit clinical note here..." style="margin-bottom: 12px;">3yo male child brought by mother presenting with high grade fever 38.8C, vomiting x 2 days, poor oral intake, and lethargy. RDT positive for P. falciparum. Weight 21kg. NRC 123456/78/1, phone 0977123456.</textarea>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 12px;">
+        <div>
+          <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px; color: #0d5c75;">Objective (Vitals & Physical Exam Field):</label>
+          <textarea name="Objective Exam Notes" placeholder="Auto-filled by Smart Fill..." style="height: 70px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px; color: #0d5c75;">Assessment (Diagnosis & Clinical Reasoning Field):</label>
+          <textarea name="Assessment Diagnosis" placeholder="Auto-filled by Smart Fill..." style="height: 70px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px; color: #0d5c75;">Plan (Treatment & Prescription Notes Field):</label>
+          <textarea name="Treatment Plan Orders" placeholder="Auto-filled by Smart Fill..." style="height: 70px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px; color: #0d5c75;">ICD-10 Diagnostic Code Field:</label>
+          <input type="text" name="ICD Diagnostic Code" placeholder="Auto-filled by Smart Fill..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" />
+        </div>
+      </div>
     </div>
 
   </div>

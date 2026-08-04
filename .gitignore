@@ -16,3 +16,4 @@ __pycache__/
 # Distribution zips
 *.zip
 !coptic-gemini-assist-v3.0.zip
+!coptic-gemini-assist-v3.1.zip

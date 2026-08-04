@@ -326,14 +326,149 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const detailedMessage = errorData.error?.message || response.statusText;
-      throw new Error(`API Error ${response.status}: ${detailedMessage}`);
-    }
+  // --- Robust Copy & Multi-Field Auto-Fill Utilities ---
 
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+  function copyToClipboardRobust(text, btnElement = null) {
+    if (!text) return;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopySuccess(btnElement);
+      }).catch(err => {
+        fallbackCopyText(text, btnElement);
+      });
+    } else {
+      fallbackCopyText(text, btnElement);
+    }
+  }
+
+  function fallbackCopyText(text, btnElement) {
+    const hiddenTextArea = document.createElement("textarea");
+    hiddenTextArea.value = text;
+    hiddenTextArea.style.position = "fixed";
+    hiddenTextArea.style.left = "-9999px";
+    hiddenTextArea.style.top = "-9999px";
+    document.body.appendChild(hiddenTextArea);
+    hiddenTextArea.focus();
+    hiddenTextArea.select();
+    try {
+      document.execCommand("copy");
+      showCopySuccess(btnElement);
+    } catch(err) {
+      alert("Copy failed. Please manually select and copy the text.");
+    } finally {
+      document.body.removeChild(hiddenTextArea);
+    }
+  }
+
+  function showCopySuccess(btnElement) {
+    if (btnElement) {
+      const origText = btnElement.innerText;
+      btnElement.innerText = "✓ Copied to Clipboard!";
+      setTimeout(() => { btnElement.innerText = origText; }, 2000);
+    } else {
+      alert("Copied to clipboard!");
+    }
+  }
+
+  // Multi-Field Smart Form Auto-Filler
+  function smartFillEHRForm(soapText, targetArea) {
+    const subjective = extractSectionText(soapText, "SUBJECTIVE");
+    const objective = extractSectionText(soapText, "OBJECTIVE");
+    const assessment = extractSectionText(soapText, "ASSESSMENT");
+    const plan = extractSectionText(soapText, "PLAN");
+    const icd10 = extractICD10Text(soapText);
+
+    const fields = Array.from(document.querySelectorAll('textarea, input[type="text"], [contenteditable="true"]'));
+    let filledCount = 0;
+
+    fields.forEach(field => {
+      if (field.id === "gemini-modal-input" || field.id === "gemini-chat-input") return;
+      const labelText = getFieldLabelContext(field).toLowerCase();
+
+      if (subjective && (labelText.includes("subjective") || labelText.includes("hpi") || labelText.includes("history") || labelText.includes("complaint"))) {
+        fillFieldValue(field, subjective);
+        filledCount++;
+      } else if (objective && (labelText.includes("objective") || labelText.includes("exam") || labelText.includes("vitals") || labelText.includes("findings"))) {
+        fillFieldValue(field, objective);
+        filledCount++;
+      } else if (assessment && (labelText.includes("assessment") || labelText.includes("diagnosis") || labelText.includes("impression") || labelText.includes("problem"))) {
+        fillFieldValue(field, assessment);
+        filledCount++;
+      } else if (plan && (labelText.includes("plan") || labelText.includes("treatment") || labelText.includes("rx") || labelText.includes("medication") || labelText.includes("order"))) {
+        fillFieldValue(field, plan);
+        filledCount++;
+      } else if (icd10 && (labelText.includes("icd") || labelText.includes("code") || labelText.includes("diagnostic"))) {
+        fillFieldValue(field, icd10);
+        filledCount++;
+      }
+    });
+
+    if (filledCount === 0 && targetArea) {
+      const cleanSOAP = soapText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
+      fillFieldValue(targetArea, cleanSOAP);
+      alert("Inserted SOAP Note into current active field!");
+    } else {
+      alert(`🎯 Smart Fill completed! Populated ${filledCount} separate EHR form fields across the page.`);
+    }
+  }
+
+  function extractSectionText(rawText, sectionName) {
+    const regex = new RegExp(`### ${sectionName}[\\s\\S]*?(?=###|$)`, "i");
+    const match = rawText.match(regex);
+    if (!match) return "";
+    return match[0].replace(/### [^\n]+\n/i, "").replace(/\*\*/g, "").trim();
+  }
+
+  function extractICD10Text(rawText) {
+    const match = rawText.match(/### ICD10_CODES([\s\S]*?)(?=###|$)/i);
+    if (!match || !match[1]) return "";
+    return match[1].trim().split("\n").map(l => l.replace(/^[*\-\s]+/, "").trim()).join(", ");
+  }
+
+  function getFieldLabelContext(field) {
+    let context = (field.placeholder || "") + " " + (field.name || "") + " " + (field.id || "") + " " + (field.getAttribute("aria-label") || "");
+    if (field.labels && field.labels.length > 0) {
+      context += " " + field.labels[0].innerText;
+    }
+    if (field.parentElement) {
+      context += " " + field.parentElement.innerText;
+    }
+    return context;
+  }
+
+  function fillFieldValue(field, text) {
+    if (field.value !== undefined) {
+      field.value = text;
+    } else {
+      field.innerText = text;
+    }
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Persistent Analysis Storage & Floating FAB Badge
+  function savePersistentAnalysis(resultText, rawInputText) {
+    const record = {
+      text: resultText,
+      inputText: rawInputText,
+      timestamp: Date.now()
+    };
+    chrome.storage.local.set({ lastAnalysisRecord: record }, () => {
+      updateFABSavedState(true);
+    });
+  }
+
+  function updateFABSavedState(hasSaved) {
+    const fab = document.getElementById("gemini-fab-btn");
+    if (!fab) return;
+    if (hasSaved) {
+      fab.classList.add("has-saved");
+      fab.innerHTML = `✨ Coptic Gemini Assistant <span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:4px;">📜 Saved Analysis Available</span>`;
+    } else {
+      fab.classList.remove("has-saved");
+      fab.innerHTML = `✨ Coptic Gemini Assistant`;
+    }
   }
 
   // Phase 2: Web Speech API Voice Dictation Engine
@@ -544,6 +679,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
         </div>
 
         <div class="gemini-modal-actions">
+          <button id="gemini-smartfill-btn" class="gemini-smartfill-btn" style="display: none;">🎯 Smart Fill EHR Forms</button>
           <button id="gemini-copy-btn" style="display: none;">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
         </div>
@@ -554,6 +690,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const runBtn = document.getElementById("gemini-modal-run-btn");
     const modalDictateBtn = document.getElementById("gemini-modal-dictate-btn");
     const resultDiv = document.getElementById("gemini-modal-result");
+    const smartFillBtn = document.getElementById("gemini-smartfill-btn");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
     const chatSection = document.getElementById("gemini-chat-section");
@@ -564,6 +701,23 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     setupVoiceDictation(inputArea, modalDictateBtn);
 
     let activeChatPromptContext = "";
+    let activeResultText = "";
+
+    // Load saved analysis if available
+    chrome.storage.local.get(['lastAnalysisRecord'], (res) => {
+      if (res.lastAnalysisRecord && res.lastAnalysisRecord.text) {
+        updateFABSavedState(true);
+        if (!inputArea.value.trim() && res.lastAnalysisRecord.inputText) {
+          inputArea.value = res.lastAnalysisRecord.inputText;
+        }
+        activeResultText = res.lastAnalysisRecord.text;
+        resultDiv.innerHTML = formatClinicalResponseHTML(activeResultText);
+        resultDiv.style.display = "block";
+        chatSection.style.display = "block";
+        copyBtn.style.display = "inline-block";
+        smartFillBtn.style.display = "inline-block";
+      }
+    });
 
     runBtn.onclick = async () => {
       const userText = inputArea.value.trim();
@@ -591,19 +745,16 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
           const combinedPrompt = `Analyze these clinical notes according to Zambian guidelines:\n${userText}${freshContext}`;
           const resultText = await callGemini({ apiKey, googleAuthToken }, combinedPrompt, selectedModel);
           
+          activeResultText = resultText;
+          savePersistentAnalysis(resultText, userText);
+
           const formattedHtml = formatClinicalResponseHTML(resultText);
           resultDiv.innerHTML = formattedHtml;
           resultDiv.style.display = "block";
           chatSection.style.display = "block";
           copyBtn.style.display = "inline-block";
-          copyBtn.innerText = "📋 Copy SOAP Note";
+          smartFillBtn.style.display = "inline-block";
 
-          copyBtn.onclick = () => {
-            const plainSOAP = resultText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
-            navigator.clipboard.writeText(plainSOAP).then(() => {
-              alert("SOAP Note copied to clipboard!");
-            });
-          };
         } catch (err) {
           alert(`Error: ${err.message}`);
         } finally {
@@ -611,6 +762,15 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
           runBtn.disabled = false;
         }
       });
+    };
+
+    copyBtn.onclick = () => {
+      const plainSOAP = activeResultText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
+      copyToClipboardRobust(plainSOAP, copyBtn);
+    };
+
+    smartFillBtn.onclick = () => {
+      smartFillEHRForm(activeResultText, null);
     };
 
     // Phase 3: Interactive Q&A Chat Handler
@@ -669,6 +829,8 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       document.body.appendChild(modal);
     }
 
+    savePersistentAnalysis(text, targetArea ? (targetArea.value || targetArea.innerText) : "");
+
     const badgeHtml = hasEhrContext 
       ? `<div class="gemini-context-badge">✓ Grounded with extracted EHR patient context (Labs/Vitals/Orders)</div>`
       : ``;
@@ -681,23 +843,27 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
         ${badgeHtml}
         <div class="gemini-modal-body">${formattedHtml}</div>
         <div class="gemini-modal-actions">
-          <button id="gemini-copy-btn">Insert SOAP Note into EHR</button>
+          <button id="gemini-smartfill-btn" class="gemini-smartfill-btn">🎯 Smart Fill EHR Forms</button>
+          <button id="gemini-copy-btn">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
         </div>
       </div>
     `;
 
-    document.getElementById("gemini-copy-btn").onclick = () => {
+    const copyBtn = document.getElementById("gemini-copy-btn");
+    const smartFillBtn = document.getElementById("gemini-smartfill-btn");
+    const closeBtn = document.getElementById("gemini-close-btn");
+
+    copyBtn.onclick = () => {
       const plainSOAP = text.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
-      if (targetArea.value !== undefined) {
-        targetArea.value += `\n\n--- AI Clinical Summary (Zambian STG) ---\n${plainSOAP}`;
-      } else {
-        targetArea.innerText += `\n\n--- AI Clinical Summary (Zambian STG) ---\n${plainSOAP}`;
-      }
-      modal.style.display = "none";
+      copyToClipboardRobust(plainSOAP, copyBtn);
     };
 
-    document.getElementById("gemini-close-btn").onclick = () => {
+    smartFillBtn.onclick = () => {
+      smartFillEHRForm(text, targetArea);
+    };
+
+    closeBtn.onclick = () => {
       modal.style.display = "none";
     };
 
