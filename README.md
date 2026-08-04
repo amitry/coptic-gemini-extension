@@ -28,6 +28,12 @@ Coptic Gemini Assist is a Chrome Extension designed to provide real-time, contex
 
 ---
 
+## 🩺 Doctor Clinical Workflow Guide
+
+View the recommended 3-step clinical workflow for doctors on ward rounds and outpatient clinics in [`WORKFLOW_GUIDE.md`](WORKFLOW_GUIDE.md).
+
+---
+
 ## 👩‍⚕️ Clinical Pilot Program
 
 Introducing Coptic Gemini Assistant to doctors at Coptic Hospital? View the full clinical pilot announcement, capabilities overview, real-world examples, and clinician orientation guide in [`PILOT_ANNOUNCEMENT.md`](PILOT_ANNOUNCEMENT.md).
