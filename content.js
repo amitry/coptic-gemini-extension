@@ -371,7 +371,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     }
   }
 
-  // Multi-Field Smart Form Auto-Filler
+  // Multi-Field Smart Form Auto-Filler (Current Page + Cross-Page Auto-Fill Queue)
   function smartFillEHRForm(soapText, targetArea) {
     const subjective = extractSectionText(soapText, "SUBJECTIVE");
     const objective = extractSectionText(soapText, "OBJECTIVE");
@@ -379,38 +379,95 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const plan = extractSectionText(soapText, "PLAN");
     const icd10 = extractICD10Text(soapText);
 
+    const queueRecord = {
+      subjective, objective, assessment, plan, icd10,
+      enabled: true,
+      timestamp: Date.now()
+    };
+
+    chrome.storage.local.set({ activeSmartFillQueue: queueRecord }, () => {
+      const filledCount = performPageAutoFill(queueRecord, targetArea);
+      if (filledCount > 0) {
+        showSmartFillToast(`🎯 Smart Filled ${filledCount} field(s) on this page! Auto-fill active across tabs & sections.`);
+      } else {
+        showSmartFillToast(`🎯 Cross-Page Auto-Fill Active! Navigate to any tab or section in Unumed to fill fields automatically.`);
+      }
+    });
+  }
+
+  function performPageAutoFill(queue, targetArea) {
+    if (!queue || !queue.enabled) return 0;
     const fields = Array.from(document.querySelectorAll('textarea, input[type="text"], [contenteditable="true"]'));
     let filledCount = 0;
 
     fields.forEach(field => {
-      if (field.id === "gemini-modal-input" || field.id === "gemini-chat-input") return;
+      if (field.id === "gemini-modal-input" || field.id === "gemini-chat-input" || field.dataset.geminiFilled) return;
       const labelText = getFieldLabelContext(field).toLowerCase();
+      const currentVal = field.value !== undefined ? field.value : field.innerText;
+      if (currentVal && currentVal.trim().length > 0) return;
 
-      if (subjective && (labelText.includes("subjective") || labelText.includes("hpi") || labelText.includes("history") || labelText.includes("complaint"))) {
-        fillFieldValue(field, subjective);
+      let sectionFilled = "";
+      if (queue.subjective && (labelText.includes("subjective") || labelText.includes("hpi") || labelText.includes("history") || labelText.includes("complaint"))) {
+        fillFieldValue(field, queue.subjective);
+        sectionFilled = "Subjective / HPI";
         filledCount++;
-      } else if (objective && (labelText.includes("objective") || labelText.includes("exam") || labelText.includes("vitals") || labelText.includes("findings"))) {
-        fillFieldValue(field, objective);
+      } else if (queue.objective && (labelText.includes("objective") || labelText.includes("exam") || labelText.includes("vitals") || labelText.includes("findings"))) {
+        fillFieldValue(field, queue.objective);
+        sectionFilled = "Objective / Exam";
         filledCount++;
-      } else if (assessment && (labelText.includes("assessment") || labelText.includes("diagnosis") || labelText.includes("impression") || labelText.includes("problem"))) {
-        fillFieldValue(field, assessment);
+      } else if (queue.assessment && (labelText.includes("assessment") || labelText.includes("diagnosis") || labelText.includes("impression") || labelText.includes("problem"))) {
+        fillFieldValue(field, queue.assessment);
+        sectionFilled = "Assessment / Diagnosis";
         filledCount++;
-      } else if (plan && (labelText.includes("plan") || labelText.includes("treatment") || labelText.includes("rx") || labelText.includes("medication") || labelText.includes("order"))) {
-        fillFieldValue(field, plan);
+      } else if (queue.plan && (labelText.includes("plan") || labelText.includes("treatment") || labelText.includes("rx") || labelText.includes("medication") || labelText.includes("order"))) {
+        fillFieldValue(field, queue.plan);
+        sectionFilled = "Plan / Orders";
         filledCount++;
-      } else if (icd10 && (labelText.includes("icd") || labelText.includes("code") || labelText.includes("diagnostic"))) {
-        fillFieldValue(field, icd10);
+      } else if (queue.icd10 && (labelText.includes("icd") || labelText.includes("code") || labelText.includes("diagnostic"))) {
+        fillFieldValue(field, queue.icd10);
+        sectionFilled = "ICD-10 Code";
         filledCount++;
+      }
+
+      if (sectionFilled) {
+        field.dataset.geminiFilled = "true";
       }
     });
 
-    if (filledCount === 0 && targetArea) {
-      const cleanSOAP = soapText.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
-      fillFieldValue(targetArea, cleanSOAP);
-      alert("Inserted SOAP Note into current active field!");
-    } else {
-      alert(`🎯 Smart Fill completed! Populated ${filledCount} separate EHR form fields across the page.`);
+    if (filledCount === 0 && targetArea && queue.subjective && !targetArea.dataset.geminiFilled) {
+      fillFieldValue(targetArea, queue.subjective);
+      targetArea.dataset.geminiFilled = "true";
+      filledCount++;
     }
+
+    return filledCount;
+  }
+
+  function checkAndAutoFillCurrentPageFields() {
+    chrome.storage.local.get(['activeSmartFillQueue'], (res) => {
+      const queue = res.activeSmartFillQueue;
+      if (queue && queue.enabled && (Date.now() - queue.timestamp < 3600000)) {
+        const filled = performPageAutoFill(queue, null);
+        if (filled > 0) {
+          showSmartFillToast(`🎯 Auto-filled ${filled} field(s) on this section!`);
+        }
+      }
+    });
+  }
+
+  function showSmartFillToast(msg) {
+    let toast = document.getElementById("gemini-toast-msg");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "gemini-toast-msg";
+      toast.className = "gemini-toast";
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = msg;
+    toast.style.display = "flex";
+    setTimeout(() => {
+      if (toast) toast.style.display = "none";
+    }, 4000);
   }
 
   function extractSectionText(rawText, sectionName) {
@@ -872,9 +929,12 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
   injectGeminiButtons();
   injectFloatingAssistantButton();
+  checkAndAutoFillCurrentPageFields();
+
   const observer = new MutationObserver(() => {
     injectGeminiButtons();
     injectFloatingAssistantButton();
+    checkAndAutoFillCurrentPageFields();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 }

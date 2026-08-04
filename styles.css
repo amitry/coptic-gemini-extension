@@ -354,3 +354,28 @@
 .gemini-smartfill-btn:hover {
   background-color: #7c3aed !important;
 }
+
+/* Cross-Page Smart Fill Toast Notification */
+.gemini-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #15803d;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: gemini-slide-in 0.3s ease;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@keyframes gemini-slide-in {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
