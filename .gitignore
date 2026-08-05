@@ -3,10 +3,12 @@ diag.txt
 diag2.txt
 *.log
 
-# Temporary files
+# Temporary files & macOS artifacts
 .tmp.*
  scratch/
 .DS_Store
+Icon*
+Icon?
 
 # Virtual environments & node
 node_modules/
