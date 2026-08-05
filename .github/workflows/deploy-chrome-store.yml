@@ -25,6 +25,11 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
         run: |
+          CLIENT_ID=$(echo "$CLIENT_ID" | tr -d ' \r\n')
+          CLIENT_SECRET=$(echo "$CLIENT_SECRET" | tr -d ' \r\n')
+          REFRESH_TOKEN=$(echo "$REFRESH_TOKEN" | tr -d ' \r\n')
+          EXTENSION_ID=$(echo "$EXTENSION_ID" | tr -d ' \r\n')
+
           echo "🔑 Requesting OAuth 2.0 Access Token from Google..."
           TOKEN_RESPONSE=$(curl -s -X POST "https://oauth2.googleapis.com/token" \
             -d "client_id=$CLIENT_ID" \
