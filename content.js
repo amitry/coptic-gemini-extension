@@ -766,13 +766,55 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const chatInput = document.getElementById("gemini-chat-input");
     const chatSendBtn = document.getElementById("gemini-chat-send-btn");
 
+  function submitGitHubFeedbackIssue(comment, btnElement = null) {
+    if (!comment || !comment.trim()) return;
+
+    const issueTitle = `[Doctor Feedback] ${comment.trim().substring(0, 60)}${comment.length > 60 ? '...' : ''}`;
+    const issueBody = `### 🩺 Clinician Feedback / Bug Report\n${comment}\n\n---\n### 🤖 Diagnostic Telemetry\n* **Extension Version**: \`v3.5\`\n* **Location**: \`${window.location.href}\`\n* **Timestamp**: \`${new Date().toLocaleString()}\``;
+
+    chrome.storage.sync.get(['githubFeedbackToken'], async (res) => {
+      const token = res.githubFeedbackToken;
+      if (token) {
+        try {
+          if (btnElement) btnElement.innerText = "⏳ Logging Issue...";
+          const resp = await fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
+            method: "POST",
+            headers: {
+              "Authorization": `token ${token}`,
+              "Content-Type": "application/json",
+              "Accept": "application/vnd.github.v3+json"
+            },
+            body: JSON.stringify({
+              title: issueTitle,
+              body: issueBody,
+              labels: ["doctor-feedback", "triage"]
+            })
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            alert(`✓ Feedback logged directly to GitHub Issue #${data.number}!\n\nView Issue: ${data.html_url}`);
+            if (btnElement) btnElement.innerText = "✓ Issue Logged!";
+            return;
+          }
+        } catch (err) {
+          console.error("Direct GitHub issue creation failed:", err);
+        }
+      }
+
+      // Fallback: Opens pre-filled GitHub issue page
+      const encodedTitle = encodeURIComponent(issueTitle);
+      const encodedBody = encodeURIComponent(issueBody);
+      const githubUrl = `https://github.com/amitry/coptic-gemini-extension/issues/new?title=${encodedTitle}&body=${encodedBody}&labels=doctor-feedback`;
+      window.open(githubUrl, "_blank");
+    });
+  }
+
     if (feedbackBtn) {
       feedbackBtn.onclick = () => {
-        const comment = prompt("💬 Doctor Feedback / Bug Report:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        const comment = prompt("💬 Log Feedback to GitHub Issues:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
         if (comment) {
-          const subject = encodeURIComponent("[Coptic Gemini Assist Feedback] Doctor Clinical Report");
-          const body = encodeURIComponent(`Doctor Feedback:\n${comment}\n\n--- Diagnostic Telemetry ---\nExtension Version: v3.4\nLocation: ${window.location.href}\nDate: ${new Date().toLocaleString()}`);
-          window.open(`mailto:it-support@coptichospital.org?subject=${subject}&body=${body}`, '_blank');
+          submitGitHubFeedbackIssue(comment, feedbackBtn);
         }
       };
     }
@@ -937,11 +979,9 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
     if (feedbackBtnRes) {
       feedbackBtnRes.onclick = () => {
-        const comment = prompt("💬 Doctor Feedback / Bug Report:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        const comment = prompt("💬 Log Feedback to GitHub Issues:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
         if (comment) {
-          const subject = encodeURIComponent("[Coptic Gemini Assist Feedback] Doctor Clinical Report");
-          const body = encodeURIComponent(`Doctor Feedback:\n${comment}\n\n--- Diagnostic Telemetry ---\nExtension Version: v3.4\nLocation: ${window.location.href}\nDate: ${new Date().toLocaleString()}`);
-          window.open(`mailto:it-support@coptichospital.org?subject=${subject}&body=${body}`, '_blank');
+          submitGitHubFeedbackIssue(comment, feedbackBtnRes);
         }
       };
     }
