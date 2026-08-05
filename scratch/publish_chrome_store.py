@@ -19,13 +19,13 @@ def publish():
     refresh_token = os.environ.get('REFRESH_TOKEN', '').strip()
     extension_id = os.environ.get('EXTENSION_ID', '').strip()
 
-    print_log(f"🔑 Client ID Present: {bool(client_id)}")
-    print_log(f"🔑 Client Secret Present: {bool(client_secret)}")
-    print_log(f"🔑 Refresh Token Present: {bool(refresh_token)}")
-    print_log(f"🔑 Extension ID Present: {bool(extension_id)}")
+    print_log(f"🔑 Client ID Length: {len(client_id)}")
+    print_log(f"🔑 Client Secret Length: {len(client_secret)}")
+    print_log(f"🔑 Refresh Token Length: {len(refresh_token)}")
+    print_log(f"🔑 Extension ID Length: {len(extension_id)}")
 
     if not client_id or not client_secret or not refresh_token or not extension_id:
-        print_log("❌ Error: One or more Chrome Web Store API secrets are missing in GitHub repository settings.")
+        print_log(f"❌ Error: One or more Chrome Web Store API secrets are empty! (ClientID len: {len(client_id)}, Secret len: {len(client_secret)}, Token len: {len(refresh_token)}, ExtID len: {len(extension_id)})")
         sys.exit(1)
 
     # 1. Request OAuth 2.0 Access Token
