@@ -4,12 +4,16 @@ Welcome to the **Coptic Gemini Assistant** development team! This guide covers e
 
 ---
 
-## 🛠️ 1. Developer Environment & Local Setup
+## 🛠️ 1. Developer Environment & Primary IDE
+
+### Recommended Primary IDE: Google Antigravity (AGY) 🚀
+**Google Antigravity (AGY)** is the official, high-velocity AI agentic IDE recommended for Coptic Hospital IT developers. Antigravity powers autonomous coding, multi-agent research, automated Playwright testing, AST syntax auditing, and 1-click extension release builds.
 
 ### Prerequisites
-* Google Chrome browser (v110+)
-* Git installed locally
-* Text editor (VS Code, Cursor, WebStorm, or similar)
+* **IDE**: **Google Antigravity IDE** (or VS Code with Antigravity / Gemini CLI)
+* **Browser**: Google Chrome browser (v110+)
+* **Version Control**: Git installed locally
+* **Python**: Python 3.10+ (for AST syntax linter & automated test suite)
 
 ### Step-by-Step Local Setup
 1. **Clone the Repository**:
@@ -111,10 +115,21 @@ Before releasing a new version (`zip` package) to doctors or the Chrome Web Stor
 
 - [ ] Test on local EHR simulator (`test.html`) — verify SOAP generation, voice dictation, and Smart Fill.
 - [ ] Test on live Unumed staging/production (`*.unumed.net`).
-- [ ] Run `python3 -c "code = open('content.js').read(); print('Brace diff:', code.count('{') - code.count('}'))"` to verify syntax integrity.
-- [ ] Bump version number in `manifest.json` (e.g., `3.4` -> `3.5`).
+- [ ] Run automated codebase audit: `python3 scratch/full_audit.py` (verifies 24 structural & Manifest V3 checks).
+- [ ] Bump version number in `manifest.json` (e.g., `5.0` -> `5.1`).
 - [ ] Build release zip:
   ```bash
-  zip -r coptic-gemini-assist-v3.5.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md icons/ store_assets/
+  zip -r coptic-gemini-assist-v5.1.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md ONSITE_HANDOVER_CHECKLIST.md SLACK_GITHUB_INTEGRATION.md package.json tests/ .github/ icons/ store_assets/ scratch/
   ```
+
+---
+
+## 🤖 7. Google Antigravity (AGY) AI Pair-Programming Workflows
+
+When working inside **Google Antigravity IDE**, developers can utilize automated agent workflows to accelerate feature development:
+
+### Key Antigravity Slash Commands & Tools
+* **`python3 scratch/full_audit.py`**: Executes an automated 24-point audit of Manifest V3 schemas, JavaScript brace balance, DOM element ID mappings, and PII redaction rules.
+* **`npm test` / Playwright E2E**: Launches Chromium with the unpacked extension loaded to run headless UI tests against [`test.html`](test.html).
+* **AI Subagents & Research Tools**: Use Antigravity subagents (`invoke_subagent`) to perform isolated code refactoring or research Unumed API changes without cluttering main conversation context.
 - [ ] Update release links in `README.md` and `PILOT_ANNOUNCEMENT.md`.
