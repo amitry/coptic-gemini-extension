@@ -7,6 +7,7 @@ diag2.txt
 .tmp.*
  scratch/
 artifacts_video/
+artifacts_slides/
 .DS_Store
 Icon*
 Icon?
