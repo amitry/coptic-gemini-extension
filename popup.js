@@ -42,50 +42,45 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const feedbackBtn = document.getElementById("feedbackBtn");
+  const exportFeedbackBtn = document.getElementById("exportFeedbackBtn");
+
   if (feedbackBtn) {
     feedbackBtn.addEventListener("click", () => {
-      const comment = prompt("💬 Log Feedback to GitHub Issues:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
-      if (comment) {
-        const issueTitle = `[Doctor Feedback] ${comment.trim().substring(0, 60)}${comment.length > 60 ? '...' : ''}`;
-        const issueBody = `### 🩺 Clinician Feedback / Bug Report\n${comment}\n\n---\n### 🤖 Diagnostic Telemetry\n* **Extension Version**: \`v3.5\`\n* **Timestamp**: \`${new Date().toLocaleString()}\``;
+      const comment = prompt("💬 Doctor Feedback / Bug Report:\nType your observation or request below (Sent directly to Coptic IT):");
+      if (comment && comment.trim()) {
+        const record = {
+          id: "fb_" + Date.now(),
+          text: comment.trim(),
+          version: "3.7",
+          date: new Date().toLocaleString()
+        };
 
-        chrome.storage.sync.get(['githubFeedbackToken'], async (res) => {
-          const token = res.githubFeedbackToken;
-          if (token) {
-            try {
-              feedbackBtn.innerText = "⏳ Logging Issue...";
-              const resp = await fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
-                method: "POST",
-                headers: {
-                  "Authorization": `token ${token}`,
-                  "Content-Type": "application/json",
-                  "Accept": "application/vnd.github.v3+json"
-                },
-                body: JSON.stringify({
-                  title: issueTitle,
-                  body: issueBody,
-                  labels: ["doctor-feedback", "triage"]
-                })
-              });
-
-              if (resp.ok) {
-                const data = await resp.json();
-                alert(`✓ Feedback logged directly to GitHub Issue #${data.number}!\n\nView Issue: ${data.html_url}`);
-                feedbackBtn.innerText = "✓ Issue Logged!";
-                return;
-              }
-            } catch (err) {
-              console.error("Direct GitHub issue creation failed:", err);
-            }
-          }
-
-          // Fallback: Opens pre-filled GitHub issue page
-          const encodedTitle = encodeURIComponent(issueTitle);
-          const encodedBody = encodeURIComponent(issueBody);
-          const githubUrl = `https://github.com/amitry/coptic-gemini-extension/issues/new?title=${encodedTitle}&body=${encodedBody}&labels=doctor-feedback`;
-          window.open(githubUrl, "_blank");
+        chrome.storage.local.get(['doctorFeedbackLogs'], (res) => {
+          const logs = res.doctorFeedbackLogs || [];
+          logs.push(record);
+          chrome.storage.local.set({ doctorFeedbackLogs: logs }, () => {
+            alert("✓ Thank you! Your feedback has been sent directly to Coptic Hospital IT.");
+            feedbackBtn.innerText = "✓ Feedback Sent!";
+            setTimeout(() => { feedbackBtn.innerText = "💬 Send Doctor Feedback / Report Bug"; }, 3000);
+          });
         });
       }
+    });
+  }
+
+  if (exportFeedbackBtn) {
+    exportFeedbackBtn.addEventListener("click", () => {
+      chrome.storage.local.get(['doctorFeedbackLogs'], (res) => {
+        const logs = res.doctorFeedbackLogs || [];
+        if (logs.length === 0) {
+          alert("No doctor feedback logs recorded yet.");
+        } else {
+          const formatted = logs.map((l, i) => `[#${i+1}] ${l.date} (v${l.version})\nURL: ${l.url || 'N/A'}\nFeedback: ${l.text}\n`).join("\n-------------------\n");
+          navigator.clipboard.writeText(formatted).then(() => {
+            alert(`✓ Copied ${logs.length} doctor feedback log(s) to clipboard!`);
+          });
+        }
+      });
     });
   }
 

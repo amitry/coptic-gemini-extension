@@ -858,55 +858,52 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const chatInput = document.getElementById("gemini-chat-input");
     const chatSendBtn = document.getElementById("gemini-chat-send-btn");
 
-  function submitGitHubFeedbackIssue(comment, btnElement = null) {
+  function submitFrictionlessDoctorFeedback(comment, btnElement = null) {
     if (!comment || !comment.trim()) return;
 
-    const issueTitle = `[Doctor Feedback] ${comment.trim().substring(0, 60)}${comment.length > 60 ? '...' : ''}`;
-    const issueBody = `### 🩺 Clinician Feedback / Bug Report\n${comment}\n\n---\n### 🤖 Diagnostic Telemetry\n* **Extension Version**: \`v3.5\`\n* **Location**: \`${window.location.href}\`\n* **Timestamp**: \`${new Date().toLocaleString()}\``;
+    if (btnElement) btnElement.innerText = "⏳ Submitting...";
 
-    chrome.storage.sync.get(['githubFeedbackToken'], async (res) => {
-      const token = res.githubFeedbackToken;
-      if (token) {
-        try {
-          if (btnElement) btnElement.innerText = "⏳ Logging Issue...";
-          const resp = await fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
+    const feedbackRecord = {
+      id: "fb_" + Date.now(),
+      text: comment.trim(),
+      version: "3.7",
+      url: window.location.href,
+      date: new Date().toLocaleString()
+    };
+
+    chrome.storage.local.get(['doctorFeedbackLogs', 'githubFeedbackToken'], (res) => {
+      const logs = res.doctorFeedbackLogs || [];
+      logs.push(feedbackRecord);
+
+      chrome.storage.local.set({ doctorFeedbackLogs: logs }, () => {
+        // If GitHub Token is set by IT admin, silently post issue in background
+        if (res.githubFeedbackToken) {
+          fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
             method: "POST",
             headers: {
-              "Authorization": `token ${token}`,
+              "Authorization": `token ${res.githubFeedbackToken}`,
               "Content-Type": "application/json",
               "Accept": "application/vnd.github.v3+json"
             },
             body: JSON.stringify({
-              title: issueTitle,
-              body: issueBody,
+              title: `[Doctor Feedback] ${comment.trim().substring(0, 50)}...`,
+              body: `### 🩺 Clinician Report\n${comment}\n\n---\n* **Version**: \`v3.7\`\n* **URL**: \`${window.location.href}\`\n* **Date**: \`${new Date().toLocaleString()}\``,
               labels: ["doctor-feedback", "triage"]
             })
-          });
-
-          if (resp.ok) {
-            const data = await resp.json();
-            alert(`✓ Feedback logged directly to GitHub Issue #${data.number}!\n\nView Issue: ${data.html_url}`);
-            if (btnElement) btnElement.innerText = "✓ Issue Logged!";
-            return;
-          }
-        } catch (err) {
-          console.error("Direct GitHub issue creation failed:", err);
+          }).catch(err => console.warn("Background GitHub log silent error:", err));
         }
-      }
 
-      // Fallback: Opens pre-filled GitHub issue page
-      const encodedTitle = encodeURIComponent(issueTitle);
-      const encodedBody = encodeURIComponent(issueBody);
-      const githubUrl = `https://github.com/amitry/coptic-gemini-extension/issues/new?title=${encodedTitle}&body=${encodedBody}&labels=doctor-feedback`;
-      window.open(githubUrl, "_blank");
+        alert("✓ Thank you! Your feedback has been sent directly to Coptic Hospital IT.");
+        if (btnElement) btnElement.innerText = "✓ Feedback Sent!";
+      });
     });
   }
 
     if (feedbackBtn) {
       feedbackBtn.onclick = () => {
-        const comment = prompt("💬 Log Feedback to GitHub Issues:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        const comment = prompt("💬 Doctor Feedback / Bug Report:\nType your observation or request below (Sent directly to Coptic IT):");
         if (comment) {
-          submitGitHubFeedbackIssue(comment, feedbackBtn);
+          submitFrictionlessDoctorFeedback(comment, feedbackBtn);
         }
       };
     }
@@ -1071,9 +1068,9 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
     if (feedbackBtnRes) {
       feedbackBtnRes.onclick = () => {
-        const comment = prompt("💬 Log Feedback to GitHub Issues:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        const comment = prompt("💬 Doctor Feedback / Bug Report:\nType your observation or request below (Sent directly to Coptic IT):");
         if (comment) {
-          submitGitHubFeedbackIssue(comment, feedbackBtnRes);
+          submitFrictionlessDoctorFeedback(comment, feedbackBtnRes);
         }
       };
     }
