@@ -44,6 +44,22 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
   });
 
+  const copySavedAnalysisBtn = document.getElementById("copySavedAnalysisBtn");
+  if (copySavedAnalysisBtn) {
+    copySavedAnalysisBtn.addEventListener("click", () => {
+      chrome.storage.local.get(['lastAnalysisRecord'], (res) => {
+        if (res.lastAnalysisRecord && res.lastAnalysisRecord.text) {
+          const plainSOAP = res.lastAnalysisRecord.text.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();
+          navigator.clipboard.writeText(plainSOAP).then(() => {
+            alert("✓ Active Saved SOAP Note copied to clipboard!");
+          });
+        } else {
+          alert("No saved patient analysis found yet. Run an analysis in Unumed first!");
+        }
+      });
+    });
+  }
+
   const feedbackBtn = document.getElementById("feedbackBtn");
   const exportFeedbackBtn = document.getElementById("exportFeedbackBtn");
 

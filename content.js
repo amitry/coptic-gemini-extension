@@ -623,7 +623,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     if (!fab) return;
     if (hasSaved) {
       fab.classList.add("has-saved");
-      fab.innerHTML = `✨ Coptic Gemini Assistant <span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:4px;">📜 Saved Analysis Available</span>`;
+      fab.innerHTML = `✨ Coptic Gemini Assistant <span style="background:#fef08a; color:#854d0e; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold; margin-left:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">📜 Saved Analysis (Click to View)</span>`;
     } else {
       fab.classList.remove("has-saved");
       fab.innerHTML = `✨ Coptic Gemini Assistant`;
@@ -921,11 +921,29 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
           inputArea.value = res.lastAnalysisRecord.inputText;
         }
         activeResultText = res.lastAnalysisRecord.text;
-        resultDiv.innerHTML = formatClinicalResponseHTML(activeResultText);
+        
+        const timeAgo = new Date(res.lastAnalysisRecord.timestamp).toLocaleTimeString();
+        const savedBannerHtml = `
+          <div id="gemini-saved-callout" style="background:#fef9c3; border: 1px solid #fde047; color: #854d0e; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <span>📜 <b>Active Saved Analysis Loaded</b> (Saved at ${timeAgo})</span>
+            <button id="gemini-view-saved-btn" style="background:#ca8a04; color:white; border:none; padding:4px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👇 View SOAP Note</button>
+          </div>
+        `;
+
+        resultDiv.innerHTML = savedBannerHtml + formatClinicalResponseHTML(activeResultText);
         resultDiv.style.display = "block";
         chatSection.style.display = "block";
         copyBtn.style.display = "inline-block";
         smartFillBtn.style.display = "inline-block";
+
+        document.getElementById("gemini-view-saved-btn").onclick = () => {
+          resultDiv.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // Auto scroll directly to saved analysis result
+        setTimeout(() => {
+          resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
       }
     });
 
