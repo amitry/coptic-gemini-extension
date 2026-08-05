@@ -18,80 +18,11 @@ jobs:
       - name: Build Extension Zip Package
         run: zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md ONSITE_HANDOVER_CHECKLIST.md SLACK_GITHUB_INTEGRATION.md CHROME_WEBSTORE_CI_SETUP.md package.json tests/ .github/ icons/ store_assets/ scratch/
 
-      - name: Upload & Publish to Chrome Web Store via Direct Python Script
+      - name: Upload & Publish to Chrome Web Store
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        run: |
-          python3 -c "
-          import urllib.request, json, os
-
-          client_id = os.environ.get('CLIENT_ID', '').strip()
-          client_secret = os.environ.get('CLIENT_SECRET', '').strip()
-          refresh_token = os.environ.get('REFRESH_TOKEN', '').strip()
-          extension_id = os.environ.get('EXTENSION_ID', '').strip()
-
-          print(f'🔑 Client ID present: {bool(client_id)}, Extension ID present: {bool(extension_id)}')
-
-          token_url = 'https://oauth2.googleapis.com/token'
-          payload = json.dumps({
-              'client_id': client_id,
-              'client_secret': client_secret,
-              'refresh_token': refresh_token,
-              'grant_type': 'refresh_token'
-          }).encode('utf-8')
-
-          req = urllib.request.Request(token_url, data=payload, headers={'Content-Type': 'application/json'})
-          try:
-              with urllib.request.urlopen(req) as resp:
-                  token_res = json.loads(resp.read().decode())
-                  access_token = token_res.get('access_token')
-                  print('✓ Access Token acquired successfully!')
-          except urllib.error.HTTPError as e:
-              print(f'❌ OAuth HTTP Error {e.code}: {e.read().decode()}')
-              exit(1)
-          except Exception as e:
-              print(f'❌ OAuth General Error: {e}')
-              exit(1)
-
-          upload_url = f'https://www.googleapis.com/upload/chromewebstore/v1.1/items/{extension_id}'
-          with open('coptic-gemini-assist.zip', 'rb') as f:
-              zip_data = f.read()
-
-          up_req = urllib.request.Request(
-              upload_url,
-              data=zip_data,
-              headers={
-                  'Authorization': f'Bearer {access_token}',
-                  'x-goog-api-version': '2'
-              },
-              method='PUT'
-          )
-          try:
-              with urllib.request.urlopen(up_req) as resp:
-                  up_res = json.loads(resp.read().decode())
-                  print(f'📦 Upload Result: {json.dumps(up_res, indent=2)}')
-          except urllib.error.HTTPError as e:
-              print(f'❌ Upload HTTP Error {e.code}: {e.read().decode()}')
-              exit(1)
-
-          pub_url = f'https://www.googleapis.com/chromewebstore/v1.1/items/{extension_id}/publish'
-          pub_req = urllib.request.Request(
-              pub_url,
-              headers={
-                  'Authorization': f'Bearer {access_token}',
-                  'x-goog-api-version': '2',
-                  'Content-Length': '0'
-              },
-              method='POST'
-          )
-          try:
-              with urllib.request.urlopen(pub_req) as resp:
-                  pub_res = json.loads(resp.read().decode())
-                  print(f'📢 Publish Result: {json.dumps(pub_res, indent=2)}')
-          except urllib.error.HTTPError as e:
-              print(f'❌ Publish HTTP Error {e.code}: {e.read().decode()}')
-          "
+        run: python3 scratch/publish_chrome_store.py
 
