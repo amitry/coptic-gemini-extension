@@ -32,10 +32,12 @@ jobs:
             -d "refresh_token=$REFRESH_TOKEN" \
             -d "grant_type=refresh_token")
           
-          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin).get('access_token', ''))")
+          echo "Token Endpoint Raw Response: $TOKEN_RESPONSE"
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin).get('access_token', ''))" 2>/dev/null)
 
           if [ -z "$ACCESS_TOKEN" ]; then
-            echo "❌ Failed to retrieve Access Token. Response:"
+            echo "❌ Failed to retrieve Access Token. Full response:"
             echo "$TOKEN_RESPONSE"
             exit 1
           fi
