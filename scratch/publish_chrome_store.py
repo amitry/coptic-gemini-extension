@@ -13,6 +13,10 @@ def print_log(msg):
     except Exception:
         pass
 
+def print_gh_error(msg):
+    print(f"::error::{msg}", flush=True)
+    print_log(msg)
+
 def publish():
     client_id = os.environ.get('CLIENT_ID', '').strip()
     client_secret = os.environ.get('CLIENT_SECRET', '').strip()
@@ -25,7 +29,7 @@ def publish():
     print_log(f"🔑 Extension ID Length: {len(extension_id)}")
 
     if not client_id or not client_secret or not refresh_token or not extension_id:
-        print_log(f"❌ Error: One or more Chrome Web Store API secrets are empty! (ClientID len: {len(client_id)}, Secret len: {len(client_secret)}, Token len: {len(refresh_token)}, ExtID len: {len(extension_id)})")
+        print_gh_error(f"One or more Chrome Web Store API secrets are empty! (ClientID len: {len(client_id)}, Secret len: {len(client_secret)}, Token len: {len(refresh_token)}, ExtID len: {len(extension_id)})")
         sys.exit(1)
 
     # 1. Request OAuth 2.0 Access Token
@@ -49,15 +53,15 @@ def publish():
             token_res = json.loads(resp.read().decode())
             access_token = token_res.get("access_token")
             if not access_token:
-                print_log(f"❌ OAuth Response did not contain access_token: {token_res}")
+                print_gh_error(f"OAuth Response did not contain access_token: {token_res}")
                 sys.exit(1)
             print_log("✓ Google OAuth Access Token acquired successfully!")
     except urllib.error.HTTPError as e:
         err_body = e.read().decode('utf-8', errors='ignore')
-        print_log(f"❌ Google OAuth HTTP Error {e.code}: {err_body}")
+        print_gh_error(f"Google OAuth HTTP Error {e.code}: {err_body}")
         sys.exit(1)
     except Exception as e:
-        print_log(f"❌ OAuth General Error: {e}")
+        print_gh_error(f"OAuth General Error: {e}")
         sys.exit(1)
 
     # 2. Upload Zip Package
@@ -88,7 +92,7 @@ def publish():
                 print_log("✓ Extension zip uploaded successfully!")
     except urllib.error.HTTPError as e:
         err_body = e.read().decode('utf-8', errors='ignore')
-        print_log(f"❌ Chrome Web Store Upload HTTP Error {e.code}: {err_body}")
+        print_gh_error(f"Chrome Web Store Upload HTTP Error {e.code}: {err_body}")
         sys.exit(1)
 
     # 3. Publish Extension Item
