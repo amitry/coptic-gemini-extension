@@ -326,6 +326,16 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       body: JSON.stringify(payload)
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const detailedMessage = errorData.error?.message || response.statusText;
+      throw new Error(`API Error ${response.status}: ${detailedMessage}`);
+    }
+
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+  }
+
   // --- Robust Copy & Multi-Field Auto-Fill Utilities ---
 
   function copyToClipboardRobust(text, btnElement = null) {

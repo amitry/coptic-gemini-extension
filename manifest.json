@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Coptic Hospital - Gemini Assistant",
-  "version": "3.2",
+  "version": "3.3",
   "description": "Clinical Decision Support Assistant & EHR Diagnostic Tool for Coptic Hospital",
   "icons": {
     "16": "icons/icon16.png",
