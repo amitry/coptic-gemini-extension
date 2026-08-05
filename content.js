@@ -817,18 +817,16 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       <div class="gemini-modal-content">
         <h3>🏥 Coptic Hospital AI Clinical Assistant</h3>
         ${badgeHtml}
-        <label style="font-weight: bold; font-size: 12px; display: block; margin-bottom: 6px;">Enter, Paste, or Dictate Clinical Observation:</label>
-        <textarea id="gemini-modal-input" class="gemini-modal-textarea" placeholder="e.g. 3yo male presenting with fever 38.5C, cough, and reduced oral intake for 2 days..."></textarea>
-        
-        <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-          <button id="gemini-modal-run-btn" class="gemini-assist-btn" style="padding: 8px 16px; font-size: 13px;">✨ Run Clinical Assistant</button>
-          <button id="gemini-modal-dictate-btn" class="gemini-dictate-btn" style="padding: 8px 16px; font-size: 13px; margin: 0;">🎙️ Dictate Note</button>
+
+        <div id="gemini-saved-callout" style="display: none; background:#fef9c3; border: 1px solid #fde047; color: #854d0e; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; justify-content: space-between; align-items: center;">
+          <span>📜 <b>Active Patient Analysis Loaded</b> (Saved in background)</span>
+          <button id="gemini-clear-saved-btn" style="background:#dc2626; color:white; border:none; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">🗑️ Clear Saved</button>
         </div>
 
-        <div id="gemini-modal-result" class="gemini-modal-body" style="display: none; border-top: 1px solid #eee; padding-top: 12px;"></div>
+        <div id="gemini-modal-result" class="gemini-modal-body" style="display: none; margin-bottom: 16px;"></div>
 
         <!-- Phase 3: Point-of-Care Interactive Q&A Chat -->
-        <div id="gemini-chat-section" class="gemini-chat-container" style="display: none;">
+        <div id="gemini-chat-section" class="gemini-chat-container" style="display: none; margin-bottom: 16px;">
           <div class="gemini-chat-title">💬 Point-of-Care Clinical Q&A Chat (Ask Zambian STG follow-up questions)</div>
           <div id="gemini-chat-history" class="gemini-chat-history"></div>
           <div class="gemini-chat-input-bar">
@@ -836,6 +834,16 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
             <button id="gemini-chat-send-btn" class="gemini-assist-btn" style="margin: 0; padding: 6px 14px;">Send</button>
           </div>
         </div>
+
+        <details id="gemini-input-details" open style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+          <summary style="font-weight: bold; font-size: 12px; cursor: pointer; color: #0d5c75; margin-bottom: 8px;">✏️ Clinical Observation Input / Re-analyze Note</summary>
+          <textarea id="gemini-modal-input" class="gemini-modal-textarea" placeholder="e.g. 3yo male presenting with fever 38.5C, cough, and reduced oral intake for 2 days..."></textarea>
+          
+          <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+            <button id="gemini-modal-run-btn" class="gemini-assist-btn" style="padding: 8px 16px; font-size: 13px;">✨ Run Clinical Assistant</button>
+            <button id="gemini-modal-dictate-btn" class="gemini-dictate-btn" style="padding: 8px 16px; font-size: 13px; margin: 0;">🎙️ Dictate Note</button>
+          </div>
+        </details>
 
         <div class="gemini-modal-actions">
           <button id="gemini-feedback-btn" style="background:#f59e0b; color:white; border:none; margin-right: auto; padding: 6px 12px; font-weight: 600;">💬 Send Feedback</button>
@@ -846,6 +854,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       </div>
     `;
 
+    const inputDetails = document.getElementById("gemini-input-details");
     const inputArea = document.getElementById("gemini-modal-input");
     const runBtn = document.getElementById("gemini-modal-run-btn");
     const modalDictateBtn = document.getElementById("gemini-modal-dictate-btn");
@@ -853,10 +862,13 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const smartFillBtn = document.getElementById("gemini-smartfill-btn");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
+    const resultDiv = document.getElementById("gemini-modal-result");
     const chatSection = document.getElementById("gemini-chat-section");
     const chatHistory = document.getElementById("gemini-chat-history");
     const chatInput = document.getElementById("gemini-chat-input");
     const chatSendBtn = document.getElementById("gemini-chat-send-btn");
+    const savedCallout = document.getElementById("gemini-saved-callout");
+    const clearSavedBtn = document.getElementById("gemini-clear-saved-btn");
 
   function submitFrictionlessDoctorFeedback(comment, btnElement = null) {
     if (!comment || !comment.trim()) return;
