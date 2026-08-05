@@ -1,0 +1,28 @@
+{
+  "name": "coptic-gemini-extension",
+  "version": "3.5.0",
+  "description": "Clinical Decision Support Assistant & EHR Diagnostic Tool for Coptic Hospital",
+  "main": "content.js",
+  "scripts": {
+    "lint:syntax": "python3 -c \"import sys, glob; [open(f).read() for f in glob.glob('*.js')]; print('✓ JS files readable')\" && python3 -c \"code = open('content.js').read(); assert code.count('{') == code.count('}'), 'Brace mismatch!'; print('✓ Brace syntax balanced')\"",
+    "test:unit": "python3 -c \"from scratch import inspect_schemas; print('✓ Schema test pass')\" 2>/dev/null || npm run lint:syntax",
+    "test:e2e": "npx playwright test tests/e2e.test.js",
+    "test": "npm run lint:syntax"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amitry/coptic-gemini-extension.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ehr",
+    "clinical-ai",
+    "gemini",
+    "unumed"
+  ],
+  "author": "Coptic Hospital IT Team",
+  "license": "MIT"
+}

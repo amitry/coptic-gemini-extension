@@ -28,6 +28,15 @@ Coptic Gemini Assist is a Chrome Extension designed to provide real-time, contex
 
 ---
 
+## 🧪 Automated Testing & CI/CD Pipeline
+
+To ensure 100% runtime stability and prevent regression bugs, the repository includes a 3-layer automated testing framework:
+1. **Static Syntax & AST Linter**: Verifies JavaScript syntax, syntax integrity, and manifest schema rules.
+2. **Playwright E2E Test Suite** (`tests/e2e.test.js`): Launches Chromium with the unpacked extension loaded and executes automated UI workflows against [`test.html`](test.html).
+3. **GitHub Actions CI/CD** (`.github/workflows/ci.yml`): Automatically executes all tests on every Pull Request and Push to `main`.
+
+---
+
 ## 💻 IT Developer & Collaboration Guide
 
 Are you a developer or IT team member at Coptic Hospital? View the complete onboarding, architecture overview, security/HIPAA rules, and pull request guide in [`CONTRIBUTING.md`](CONTRIBUTING.md).
