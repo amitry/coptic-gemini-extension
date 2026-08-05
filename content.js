@@ -765,7 +765,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
           const googleAuthToken = result.googleAuthToken;
           const selectedModel = result.selectedModel || "gemini-3.6-flash";
 
-          if (!apiKey && !googleAuthToken) {
+          if (!apiKey && !googleAuthToken && window.location.protocol !== "file:") {
             alert("Please sign in with your Google Workspace account or save an API key in the extension popup first!");
             return;
           }

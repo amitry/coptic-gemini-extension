@@ -6,6 +6,7 @@ diag2.txt
 # Temporary files & macOS artifacts
 .tmp.*
  scratch/
+artifacts_video/
 .DS_Store
 Icon*
 Icon?
