@@ -26,3 +26,10 @@ jobs:
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
         run: python3 scratch/publish_chrome_store.py
 
+      - name: Upload Error Log Artifact on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-error-log
+          path: deploy_error.txt
+

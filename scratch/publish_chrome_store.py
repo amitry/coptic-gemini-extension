@@ -42,10 +42,15 @@ def publish():
                 sys.exit(1)
             print("✓ Google OAuth Access Token acquired successfully!")
     except urllib.error.HTTPError as e:
-        print(f"❌ Google OAuth HTTP Error {e.code}: {e.read().decode()}")
+        err_body = e.read().decode('utf-8', errors='ignore')
+        print(f"❌ Google OAuth HTTP Error {e.code}: {err_body}")
+        with open('deploy_error.txt', 'w') as f:
+            f.write(f"OAuth HTTP Error {e.code}: {err_body}")
         sys.exit(1)
     except Exception as e:
         print(f"❌ OAuth General Error: {e}")
+        with open('deploy_error.txt', 'w') as f:
+            f.write(f"OAuth General Error: {e}")
         sys.exit(1)
 
     # 2. Upload Zip Package
@@ -75,7 +80,10 @@ def publish():
             else:
                 print("✓ Extension zip uploaded successfully!")
     except urllib.error.HTTPError as e:
-        print(f"❌ Chrome Web Store Upload HTTP Error {e.code}: {e.read().decode()}")
+        err_body = e.read().decode('utf-8', errors='ignore')
+        print(f"❌ Chrome Web Store Upload HTTP Error {e.code}: {err_body}")
+        with open('deploy_error.txt', 'w') as f:
+            f.write(f"Upload HTTP Error {e.code}: {err_body}")
         sys.exit(1)
 
     # 3. Publish Extension Item
