@@ -244,6 +244,17 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
     return `\n\n=== EXTRACTED EHR PATIENT CONTEXT (5 CATEGORIES) ===\n${parts.join("\n")}\n======================================================\n`;
   }
 
+  // De-Identification & PII Redactor (Zambian NRC & Phone Numbers)
+  function redactPII(text) {
+    if (!text) return "";
+    let clean = text;
+    // 1. Redact Zambian National Registration Card (NRC) numbers: 6 digits / 2 digits / 1 digit
+    clean = clean.replace(/\b\d{6}\/\d{2}\/\d{1}\b/g, "[NRC REDACTED]");
+    // 2. Redact Zambian phone numbers (+260... or 097... or 096... or 095... or 077...)
+    clean = clean.replace(/\b(?:\+260|0)(?:97|96|95|77|76|75)\d{7}\b/g, "[PHONE REDACTED]");
+    return clean;
+  }
+
   // 1. Listen for network events from interceptor.js
   window.addEventListener("message", (event) => {
     if (event.data?.type === "UNUMED_RECON_DATA") {
@@ -764,7 +775,8 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
 
           try {
             const ehrContext = buildFormattedPatientContext();
-            const combinedPrompt = `Analyze these clinical notes according to Zambian guidelines:\n${userText}${ehrContext}`;
+            const sanitizedText = redactPII(userText);
+            const combinedPrompt = `Analyze these clinical notes according to Zambian guidelines:\n${sanitizedText}${ehrContext}`;
             
             const resultText = await callGemini({ apiKey, googleAuthToken }, combinedPrompt, selectedModel);
             showResultModal(resultText, area, Boolean(ehrContext));
