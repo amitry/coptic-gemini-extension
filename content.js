@@ -4,13 +4,15 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
 
   console.log("Coptic Assistant Running on Unumed!");
 
-  // --- Patient Context Cache ---
+  // --- Comprehensive 5-Category Patient Context Cache ---
   let activePatientContext = {
     patientId: null,
     demographics: {},
     vitals: {},
     labs: [],
+    imaging: [],
     medications: [],
+    documents: [],
     notes: []
   };
 
@@ -29,7 +31,9 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
           demographics: {},
           vitals: {},
           labs: [],
+          imaging: [],
           medications: [],
+          documents: [],
           notes: []
         };
       }
@@ -49,67 +53,118 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
       if (anthro.bmi) activePatientContext.vitals.bmi = `${anthro.bmi}`;
     }
 
-    // 3. Lab Results
-    const labList = res.searchPatientEhrLab?.result;
+    // 3. Laboratory Reports
+    const labList = res.searchPatientEhrLab?.result || res.patientEhrLabList?.result;
     if (Array.isArray(labList)) {
       labList.forEach(lab => {
-        if (lab.userProcedureName) {
-          const exists = activePatientContext.labs.some(l => l.name === lab.userProcedureName);
+        const name = lab.userProcedureName || lab.procedureName || lab.name;
+        if (name) {
+          const exists = activePatientContext.labs.some(l => l.name === name);
           if (!exists) {
             activePatientContext.labs.push({
-              name: lab.userProcedureName,
+              name: name,
               date: lab.createdDate ? new Date(lab.createdDate).toLocaleDateString() : "Recent",
-              by: lab.createdByUser?.fullName || "Staff"
+              by: lab.createdByUser?.fullName || "Staff",
+              details: lab.resultText || lab.findings || lab.value || ""
             });
           }
         }
       });
     }
 
-    const singleLab = res.ehrEntry?.labReport;
-    if (singleLab?.userProcedureName) {
+    const singleLab = res.ehrEntry?.labReport || res.patientEhrLabReport;
+    if (singleLab?.userProcedureName || singleLab?.name) {
+      const name = singleLab.userProcedureName || singleLab.name;
       const lines = singleLab.reportLines || [];
       const formattedLines = lines.map(rl => `${rl.attributeName || rl.name}: ${rl.value} (${rl.referenceRange || 'N/A'})`).join("; ");
-      const exists = activePatientContext.labs.find(l => l.name === singleLab.userProcedureName);
+      const exists = activePatientContext.labs.find(l => l.name === name);
       if (exists) {
         exists.details = formattedLines || singleLab.laboratoryFindings || "PDF/Report available";
       } else {
         activePatientContext.labs.push({
-          name: singleLab.userProcedureName,
+          name: name,
           date: "Recent",
           details: formattedLines || singleLab.laboratoryFindings || "PDF/Report available"
         });
       }
     }
 
-    // 4. Clinical Notes
-    const notesList = res.searchPatientEhrNotes?.result;
-    if (Array.isArray(notesList)) {
-      notesList.forEach(n => {
-        if (n.createdByUser?.fullName) {
-          const exists = activePatientContext.notes.some(existing => existing.id === n.id);
+    // 4. Imaging Reports (X-Ray, Ultrasound, CT, MRI, ECG)
+    const imagingList = res.searchPatientEhrImaging?.result || res.patientEhrImagingList?.result || res.ehrEntry?.imagingReport;
+    if (Array.isArray(imagingList)) {
+      imagingList.forEach(img => {
+        const title = img.userProcedureName || img.procedureName || img.title || img.name;
+        if (title) {
+          const exists = activePatientContext.imaging.some(i => i.title === title);
           if (!exists) {
-            activePatientContext.notes.push({
-              id: n.id,
-              author: n.createdByUser.fullName,
-              date: n.createdDate ? new Date(n.createdDate).toLocaleDateString() : "N/A"
+            activePatientContext.imaging.push({
+              title: title,
+              date: img.createdDate ? new Date(img.createdDate).toLocaleDateString() : "Recent",
+              findings: img.findings || img.impression || img.reportText || "Report attached"
+            });
+          }
+        }
+      });
+    } else if (imagingList && typeof imagingList === "object") {
+      const title = imagingList.userProcedureName || imagingList.name || "Imaging Report";
+      const exists = activePatientContext.imaging.some(i => i.title === title);
+      if (!exists) {
+        activePatientContext.imaging.push({
+          title: title,
+          date: "Recent",
+          findings: imagingList.findings || imagingList.impression || "Report attached"
+        });
+      }
+    }
+
+    // 5. Medication Lists & Active Orders
+    const ordersList = res.patientPastOrders?.result || res.patientOngoingOrders?.result || res.patientPackageOrders?.result || res.patientPrescriptions?.result;
+    if (Array.isArray(ordersList)) {
+      ordersList.forEach(ord => {
+        const name = ord.userProcedureName || ord.name || ord.medicationName;
+        if (name) {
+          const exists = activePatientContext.medications.some(m => m.name === name);
+          if (!exists) {
+            activePatientContext.medications.push({
+              name: name,
+              dosage: ord.dosage || ord.instructions || "",
+              date: ord.createdDate ? new Date(ord.createdDate).toLocaleDateString() : "Active"
             });
           }
         }
       });
     }
 
-    // 5. Medication & Past Orders
-    const ordersList = res.patientPastOrders?.result || res.patientOngoingOrders?.result || res.patientPackageOrders?.result;
-    if (Array.isArray(ordersList)) {
-      ordersList.forEach(ord => {
-        if (ord.userProcedureName || ord.name) {
-          const name = ord.userProcedureName || ord.name;
-          const exists = activePatientContext.medications.some(m => m.name === name);
+    // 6. External Documents & Attachments
+    const docList = res.searchPatientEhrDocument?.result || res.patientExternalDocuments?.result || res.patientAttachments?.result;
+    if (Array.isArray(docList)) {
+      docList.forEach(doc => {
+        const title = doc.fileName || doc.documentTitle || doc.name;
+        if (title) {
+          const exists = activePatientContext.documents.some(d => d.title === title);
           if (!exists) {
-            activePatientContext.medications.push({
-              name: name,
-              date: ord.createdDate ? new Date(ord.createdDate).toLocaleDateString() : "Active"
+            activePatientContext.documents.push({
+              title: title,
+              type: doc.documentType || "External PDF/File",
+              date: doc.createdDate ? new Date(doc.createdDate).toLocaleDateString() : "Recent"
+            });
+          }
+        }
+      });
+    }
+
+    // 7. Clinical Notes & Triage
+    const notesList = res.searchPatientEhrNotes?.result || res.patientNotes?.result;
+    if (Array.isArray(notesList)) {
+      notesList.forEach(n => {
+        if (n.createdByUser?.fullName || n.noteText || n.content) {
+          const exists = activePatientContext.notes.some(existing => existing.id === n.id);
+          if (!exists) {
+            activePatientContext.notes.push({
+              id: n.id || Math.random().toString(),
+              author: n.createdByUser?.fullName || "Clinician",
+              date: n.createdDate ? new Date(n.createdDate).toLocaleDateString() : "N/A",
+              text: n.noteText || n.content || ""
             });
           }
         }
@@ -117,36 +172,73 @@ if (isAllowedDomain && !window.hasCopticExtensionRun) {
     }
   }
 
+  // Scrape rendered DOM elements as fallback
+  function scrapeDOMPatientContext() {
+    try {
+      // Scrape DOM tables for Lab Results
+      const labRows = document.querySelectorAll('.lab-row, table.lab-table tbody tr, .lab-result-item');
+      labRows.forEach(row => {
+        const text = row.innerText.trim();
+        if (text && text.length > 5 && !activePatientContext.labs.some(l => l.name.includes(text.substring(0, 15)))) {
+          activePatientContext.labs.push({ name: text.replace(/\s+/g, ' '), date: "DOM Rendered" });
+        }
+      });
+
+      // Scrape DOM for Imaging
+      const imgElements = document.querySelectorAll('.imaging-report, .radiology-card, [data-type="imaging"]');
+      imgElements.forEach(el => {
+        const text = el.innerText.trim();
+        if (text && !activePatientContext.imaging.some(i => i.title.includes(text.substring(0, 15)))) {
+          activePatientContext.imaging.push({ title: text.replace(/\s+/g, ' '), findings: "From Unumed Screen" });
+        }
+      });
+    } catch (e) {
+      console.warn("DOM context scrape warning:", e);
+    }
+  }
+
   function buildFormattedPatientContext() {
+    scrapeDOMPatientContext();
+
     const demo = activePatientContext.demographics;
     const vitals = activePatientContext.vitals;
     const labs = activePatientContext.labs;
+    const imaging = activePatientContext.imaging;
     const notes = activePatientContext.notes;
     const meds = activePatientContext.medications;
+    const docs = activePatientContext.documents;
 
     let parts = [];
     if (demo.mrn) {
-      parts.push(`PATIENT PROFILE: MRN: ${demo.mrn} | Sex: ${demo.gender} | DOB: ${demo.birthDate} | Payer: ${demo.payer}`);
+      parts.push(`1. PATIENT PROFILE: MRN: ${demo.mrn} | Sex: ${demo.gender} | DOB: ${demo.birthDate} | Payer: ${demo.payer}`);
     }
     if (Object.keys(vitals).length > 0) {
       const vStr = Object.entries(vitals).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(" | ");
-      parts.push(`VITALS: ${vStr}`);
+      parts.push(`2. VITALS & ANTHROPOMETRICS: ${vStr}`);
     }
     if (meds.length > 0) {
-      const mStr = meds.slice(0, 5).map(m => `${m.name} (${m.date})`).join(", ");
-      parts.push(`ACTIVE/RECENT ORDERS: ${mStr}`);
+      const mStr = meds.slice(0, 8).map(m => `${m.name}${m.dosage ? ' (' + m.dosage + ')' : ''} [${m.date}]`).join(", ");
+      parts.push(`3. MEDICATION LIST & ORDERS: ${mStr}`);
     }
     if (labs.length > 0) {
-      const lStr = labs.slice(0, 5).map(l => l.details ? `${l.name} [${l.details}]` : `${l.name} (${l.date})`).join("; ");
-      parts.push(`RECENT LABS: ${lStr}`);
+      const lStr = labs.slice(0, 8).map(l => l.details ? `${l.name} [${l.details}]` : `${l.name} (${l.date})`).join("; ");
+      parts.push(`4. LABORATORY REPORTS: ${lStr}`);
+    }
+    if (imaging.length > 0) {
+      const iStr = imaging.slice(0, 5).map(i => `${i.title} (${i.date}) - Findings: ${i.findings}`).join("; ");
+      parts.push(`5. IMAGING & RADIOLOGY REPORTS: ${iStr}`);
+    }
+    if (docs.length > 0) {
+      const dStr = docs.slice(0, 5).map(d => `${d.title} (${d.type}, ${d.date})`).join("; ");
+      parts.push(`6. EXTERNAL DOCUMENTS & ATTACHMENTS: ${dStr}`);
     }
     if (notes.length > 0) {
-      const nStr = notes.slice(0, 3).map(n => `By ${n.author} on ${n.date}`).join("; ");
-      parts.push(`PREVIOUS CLINICAL NOTES: ${nStr}`);
+      const nStr = notes.slice(0, 5).map(n => `[${n.date} by ${n.author}]: ${n.text ? n.text.substring(0, 100) : 'Note filed'}`).join("; ");
+      parts.push(`7. CLINICAL NOTES & TRIAGE: ${nStr}`);
     }
 
     if (parts.length === 0) return "";
-    return `\n\n=== EXTRACTED EHR PATIENT CONTEXT ===\n${parts.join("\n")}\n=======================================\n`;
+    return `\n\n=== EXTRACTED EHR PATIENT CONTEXT (5 CATEGORIES) ===\n${parts.join("\n")}\n======================================================\n`;
   }
 
   // 1. Listen for network events from interceptor.js

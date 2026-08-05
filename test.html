@@ -106,6 +106,34 @@
       </table>
     </div>
 
+    <!-- Imaging & Radiology Reports -->
+    <div class="card">
+      <div class="card-title">🖼️ Imaging & Radiology Reports</div>
+      <table>
+        <thead>
+          <tr><th>Modality / Study</th><th>Impression & Findings</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Chest X-Ray (AP View)</b></td><td>Right lower lobe consolidation consistent with patchy pneumonia. No pleural effusion.</td><td>03-Aug-2026</td></tr>
+          <tr><td><b>Abdominal Ultrasound</b></td><td>Mild splenomegaly (11.5cm). Liver and kidneys normal size and echo-texture.</td><td>02-Aug-2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- External Documents & Attachments -->
+    <div class="card">
+      <div class="card-title">📁 External Documents & Attachments</div>
+      <table>
+        <thead>
+          <tr><th>Document Name</th><th>Source / Category</th><th>Date Uploaded</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Referral_Letter_Kanyama_Level1.pdf</b></td><td>External Referral Note</td><td>03-Aug-2026</td></tr>
+          <tr><td><b>Previous_Discharge_Summary_2025.pdf</b></td><td>Discharge Summary</td><td>15-Nov-2025</td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Doctor Note Form -->
     <div class="card">
       <div class="card-title">
@@ -195,7 +223,41 @@
             patientOngoingOrders: {
               result: [
                 { userProcedureName: "Paracetamol 250mg/5ml Syrup", createdDate: Date.now() },
-                { userProcedureName: "IV Normal Saline 500ml", createdDate: Date.now() }
+                { userProcedureName: "IV Normal Saline 500ml", createdDate: Date.now() },
+                { userProcedureName: "Oral Rehydration Salts (ORS)", createdDate: Date.now() }
+              ]
+            }
+          }
+        }
+      };
+
+      const mockImagingPayload = {
+        type: "UNUMED_RECON_DATA",
+        endpoint: "https://backend-capetown.unumed.net/graphql",
+        method: "POST",
+        graphqlOperation: "searchPatientEhrImaging",
+        responseBody: {
+          data: {
+            searchPatientEhrImaging: {
+              result: [
+                { userProcedureName: "Chest X-Ray AP View", findings: "Right lower lobe consolidation consistent with pneumonia", createdDate: Date.now() },
+                { userProcedureName: "Abdominal Ultrasound", findings: "Mild splenomegaly (11.5cm)", createdDate: Date.now() - 86400000 }
+              ]
+            }
+          }
+        }
+      };
+
+      const mockDocsPayload = {
+        type: "UNUMED_RECON_DATA",
+        endpoint: "https://backend-capetown.unumed.net/graphql",
+        method: "POST",
+        graphqlOperation: "searchPatientEhrDocument",
+        responseBody: {
+          data: {
+            searchPatientEhrDocument: {
+              result: [
+                { fileName: "Referral_Letter_Kanyama_Level1.pdf", documentType: "External Referral", createdDate: Date.now() }
               ]
             }
           }
@@ -205,6 +267,8 @@
       window.postMessage(mockEhrDocPayload, "*");
       window.postMessage(mockLabPayload, "*");
       window.postMessage(mockOrdersPayload, "*");
+      window.postMessage(mockImagingPayload, "*");
+      window.postMessage(mockDocsPayload, "*");
       console.log("⚡ Simulated Unumed EHR GraphQL payloads dispatched to content.js");
     }
 
