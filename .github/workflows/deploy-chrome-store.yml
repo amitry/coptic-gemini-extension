@@ -7,6 +7,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,8 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Extension Zip Package
-        run: |
-          zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md ONSITE_HANDOVER_CHECKLIST.md SLACK_GITHUB_INTEGRATION.md package.json tests/ .github/ icons/ store_assets/ scratch/
+        run: zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md ONSITE_HANDOVER_CHECKLIST.md SLACK_GITHUB_INTEGRATION.md CHROME_WEBSTORE_CI_SETUP.md package.json tests/ .github/ icons/ store_assets/ scratch/
 
       - name: Upload & Publish to Chrome Web Store
         uses: cardinalby/chrome-extension-upload-action@v1
