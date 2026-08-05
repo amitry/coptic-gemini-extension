@@ -746,6 +746,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
         </div>
 
         <div class="gemini-modal-actions">
+          <button id="gemini-feedback-btn" style="background:#f59e0b; color:white; border:none; margin-right: auto; padding: 6px 12px; font-weight: 600;">💬 Send Feedback</button>
           <button id="gemini-smartfill-btn" class="gemini-smartfill-btn" style="display: none;">🎯 Smart Fill EHR Forms</button>
           <button id="gemini-copy-btn" style="display: none;">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
@@ -756,7 +757,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const inputArea = document.getElementById("gemini-modal-input");
     const runBtn = document.getElementById("gemini-modal-run-btn");
     const modalDictateBtn = document.getElementById("gemini-modal-dictate-btn");
-    const resultDiv = document.getElementById("gemini-modal-result");
+    const feedbackBtn = document.getElementById("gemini-feedback-btn");
     const smartFillBtn = document.getElementById("gemini-smartfill-btn");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
@@ -764,6 +765,17 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const chatHistory = document.getElementById("gemini-chat-history");
     const chatInput = document.getElementById("gemini-chat-input");
     const chatSendBtn = document.getElementById("gemini-chat-send-btn");
+
+    if (feedbackBtn) {
+      feedbackBtn.onclick = () => {
+        const comment = prompt("💬 Doctor Feedback / Bug Report:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        if (comment) {
+          const subject = encodeURIComponent("[Coptic Gemini Assist Feedback] Doctor Clinical Report");
+          const body = encodeURIComponent(`Doctor Feedback:\n${comment}\n\n--- Diagnostic Telemetry ---\nExtension Version: v3.4\nLocation: ${window.location.href}\nDate: ${new Date().toLocaleString()}`);
+          window.open(`mailto:it-support@coptichospital.org?subject=${subject}&body=${body}`, '_blank');
+        }
+      };
+    }
 
     setupVoiceDictation(inputArea, modalDictateBtn);
 
@@ -910,6 +922,7 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
         ${badgeHtml}
         <div class="gemini-modal-body">${formattedHtml}</div>
         <div class="gemini-modal-actions">
+          <button id="gemini-feedback-btn-res" style="background:#f59e0b; color:white; border:none; margin-right: auto; padding: 6px 12px; font-weight: 600;">💬 Send Feedback</button>
           <button id="gemini-smartfill-btn" class="gemini-smartfill-btn">🎯 Smart Fill EHR Forms</button>
           <button id="gemini-copy-btn">📋 Copy SOAP Note</button>
           <button id="gemini-close-btn">Close</button>
@@ -917,9 +930,21 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
       </div>
     `;
 
+    const feedbackBtnRes = document.getElementById("gemini-feedback-btn-res");
     const copyBtn = document.getElementById("gemini-copy-btn");
     const smartFillBtn = document.getElementById("gemini-smartfill-btn");
     const closeBtn = document.getElementById("gemini-close-btn");
+
+    if (feedbackBtnRes) {
+      feedbackBtnRes.onclick = () => {
+        const comment = prompt("💬 Doctor Feedback / Bug Report:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+        if (comment) {
+          const subject = encodeURIComponent("[Coptic Gemini Assist Feedback] Doctor Clinical Report");
+          const body = encodeURIComponent(`Doctor Feedback:\n${comment}\n\n--- Diagnostic Telemetry ---\nExtension Version: v3.4\nLocation: ${window.location.href}\nDate: ${new Date().toLocaleString()}`);
+          window.open(`mailto:it-support@coptichospital.org?subject=${subject}&body=${body}`, '_blank');
+        }
+      };
+    }
 
     copyBtn.onclick = () => {
       const plainSOAP = text.replace(/### ICD10_CODES[\s\S]*?(?=###|$)/i, "").trim();

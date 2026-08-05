@@ -41,6 +41,18 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
   });
 
+  const feedbackBtn = document.getElementById("feedbackBtn");
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener("click", () => {
+      const comment = prompt("💬 Doctor Feedback / Bug Report:\nDescribe what happened or suggest a feature (Auto-attaches diagnostic context):");
+      if (comment) {
+        const subject = encodeURIComponent("[Coptic Gemini Assist Feedback] Doctor Clinical Report");
+        const body = encodeURIComponent(`Doctor Feedback:\n${comment}\n\n--- Diagnostic Telemetry ---\nExtension Version: v3.4\nDate: ${new Date().toLocaleString()}`);
+        window.open(`mailto:it-support@coptichospital.org?subject=${subject}&body=${body}`, '_blank');
+      }
+    });
+  }
+
   // Handle Google Workspace SSO Sign-In
   googleLoginBtn.addEventListener("click", () => {
     statusDiv.innerText = "Connecting to Google Workspace...";
