@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Extension Zip Package
         run: |
-          zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md
+          zip -r coptic-gemini-assist.zip manifest.json content.js interceptor.js popup.html popup.js styles.css test.html README.md ROADMAP.md PILOT_ANNOUNCEMENT.md WORKFLOW_GUIDE.md PRIVACY_POLICY.md CONTRIBUTING.md ONSITE_HANDOVER_CHECKLIST.md SLACK_GITHUB_INTEGRATION.md package.json tests/ .github/ icons/ store_assets/ scratch/
 
       - name: Upload & Publish to Chrome Web Store
         uses: chrome-stats/chrome-extension-upload-action@v2
