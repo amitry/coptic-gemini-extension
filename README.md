@@ -4,6 +4,8 @@
 
 Coptic Gemini Assist is a Chrome Extension designed to provide real-time, context-aware AI clinical decision support directly inside the hospital's EHR platform (Unumed).
 
+👉 **[View Full-Color Visual Walkthrough (WALKTHROUGH.md)](WALKTHROUGH.md)**
+
 ---
 
 ## 🌟 Key Features
