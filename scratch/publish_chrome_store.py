@@ -20,6 +20,8 @@ def publish():
     extension_id = os.environ.get('EXTENSION_ID', '').strip()
 
     print_log(f"🔑 Client ID Present: {bool(client_id)}")
+    print_log(f"🔑 Client Secret Present: {bool(client_secret)}")
+    print_log(f"🔑 Refresh Token Present: {bool(refresh_token)}")
     print_log(f"🔑 Extension ID Present: {bool(extension_id)}")
 
     if not client_id or not client_secret or not refresh_token or not extension_id:
