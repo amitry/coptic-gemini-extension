@@ -28,6 +28,12 @@ Coptic Gemini Assist is a Chrome Extension designed to provide real-time, contex
 
 ---
 
+## 🇿🇲 Onsite Transition & Handover Checklist
+
+Leaving onsite in Zambia? View the essential handover checklist, project champion designations, account transfers, and deployment steps in [`ONSITE_HANDOVER_CHECKLIST.md`](ONSITE_HANDOVER_CHECKLIST.md).
+
+---
+
 ## 🧪 Automated Testing & CI/CD Pipeline
 
 To ensure 100% runtime stability and prevent regression bugs, the repository includes a 3-layer automated testing framework:
