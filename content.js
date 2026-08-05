@@ -1,4 +1,4 @@
-const isAllowedDomain = window.location.hostname.includes("unumed.net") || window.location.protocol === "file:";
+const isAllowedDomain = window.location.hostname.includes("unumed.net") || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
 if (isAllowedDomain && !window.hasCopticExtensionRun) {
   window.hasCopticExtensionRun = true;
 
