@@ -2,6 +2,9 @@ const isAllowedDomain = window.location.hostname.includes("unumed.net") || windo
 if (isAllowedDomain && !window.hasCopticExtensionRun) {
   window.hasCopticExtensionRun = true;
 
+  // Default Slack Incoming Webhook URL for Coptic Hospital Doctor Feedback Channel
+  const DEFAULT_SLACK_WEBHOOK_URL = "";
+
   console.log("Coptic Assistant Running on Unumed!");
 
   // --- Comprehensive 5-Category Patient Context Cache ---
@@ -898,8 +901,9 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
             }).catch(err => console.warn("Feedback Webhook silent error:", err));
           }
 
-          // 2. Direct Slack Incoming Webhook
-          if (syncRes.slackWebhookUrl) {
+          // 2. Direct Slack Incoming Webhook (Configured or Default Hospital Channel)
+          const targetSlackUrl = syncRes.slackWebhookUrl || DEFAULT_SLACK_WEBHOOK_URL;
+          if (targetSlackUrl) {
             const slackPayload = {
               blocks: [
                 { type: "header", text: { type: "plain_text", text: "🩺 New Doctor Feedback / Bug Report", emoji: true } },
@@ -907,14 +911,14 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
                   type: "section",
                   fields: [
                     { type: "mrkdwn", text: `*Location:*\n${window.location.href}` },
-                    { type: "mrkdwn", text: `*Version:*\n\`v4.0\`` }
+                    { type: "mrkdwn", text: `*Version:*\n\`v4.1\`` }
                   ]
                 },
                 { type: "section", text: { type: "mrkdwn", text: `*Clinician Note:*\n>>> ${comment.trim()}` } },
                 { type: "context", elements: [{ type: "mrkdwn", text: `Received at ${new Date().toLocaleString()} | Coptic Hospital Lusaka` }] }
               ]
             };
-            fetch(syncRes.slackWebhookUrl, {
+            fetch(targetSlackUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(slackPayload)
