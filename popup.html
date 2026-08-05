@@ -39,9 +39,14 @@
     <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
   </select>
 
+  <div style="margin-bottom: 10px;">
+    <label for="feedbackWebhookUrl" style="font-size: 11px; color: #475569;">Feedback Webhook / Gateway URL (IT Admin):</label>
+    <input type="text" id="feedbackWebhookUrl" placeholder="Paste Google Script or Gateway Webhook URL..." />
+  </div>
+
   <div style="margin-bottom: 12px;">
-    <label for="githubFeedbackToken" style="font-size: 11px; color: #475569;">GitHub Token for Auto-Issues (IT Admin Optional):</label>
-    <input type="text" id="githubFeedbackToken" placeholder="Paste ghp_... token to post issues automatically" />
+    <label for="slackWebhookUrl" style="font-size: 11px; color: #475569;">Slack Channel Webhook URL (Optional):</label>
+    <input type="text" id="slackWebhookUrl" placeholder="Paste https://hooks.slack.com/services/... for Slack alerts" />
   </div>
 
   <button id="saveKeyBtn">Save Settings</button>

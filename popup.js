@@ -11,10 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const getAiStudioKeyBtn = document.getElementById("getAiStudioKeyBtn");
   const userInfoBox = document.getElementById("userInfoBox");
 
-  const githubFeedbackTokenInput = document.getElementById("githubFeedbackToken");
+  const feedbackWebhookUrlInput = document.getElementById("feedbackWebhookUrl");
+  const slackWebhookUrlInput = document.getElementById("slackWebhookUrl");
 
   function updateAuthUI() {
-    chrome.storage.sync.get(['googleAuthToken', 'userEmail', 'geminiApiKey', 'selectedModel', 'githubFeedbackToken'], (res) => {
+    chrome.storage.sync.get(['googleAuthToken', 'userEmail', 'geminiApiKey', 'selectedModel', 'feedbackWebhookUrl', 'slackWebhookUrl'], (res) => {
       if (res.userEmail && res.googleAuthToken) {
         userInfoBox.innerHTML = `✓ Workspace SSO: <b>${res.userEmail}</b>`;
         userInfoBox.style.display = "block";
@@ -33,7 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (res.geminiApiKey) apiKeyInput.value = res.geminiApiKey;
       if (res.selectedModel) modelSelect.value = res.selectedModel;
-      if (res.githubFeedbackToken && githubFeedbackTokenInput) githubFeedbackTokenInput.value = res.githubFeedbackToken;
+      if (res.feedbackWebhookUrl && feedbackWebhookUrlInput) feedbackWebhookUrlInput.value = res.feedbackWebhookUrl;
+      if (res.slackWebhookUrl && slackWebhookUrlInput) slackWebhookUrlInput.value = res.slackWebhookUrl;
     });
   }
 
@@ -162,8 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
   saveKeyBtn.addEventListener("click", () => {
     const key = apiKeyInput.value.trim();
     const model = modelSelect.value;
-    const ghToken = githubFeedbackTokenInput ? githubFeedbackTokenInput.value.trim() : "";
-    chrome.storage.sync.set({ geminiApiKey: key, selectedModel: model, githubFeedbackToken: ghToken }, () => {
+    const fbWebhook = feedbackWebhookUrlInput ? feedbackWebhookUrlInput.value.trim() : "";
+    const slackWebhook = slackWebhookUrlInput ? slackWebhookUrlInput.value.trim() : "";
+    chrome.storage.sync.set({ geminiApiKey: key, selectedModel: model, feedbackWebhookUrl: fbWebhook, slackWebhookUrl: slackWebhook }, () => {
       statusDiv.innerText = "Settings saved successfully!";
       updateAuthUI();
       setTimeout(() => statusDiv.innerText = "", 2000);

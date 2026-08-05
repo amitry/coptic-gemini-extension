@@ -878,35 +878,69 @@ Actionable bullet points for diagnostic investigations, first-line Zambian STG m
     const feedbackRecord = {
       id: "fb_" + Date.now(),
       text: comment.trim(),
-      version: "3.7",
+      version: "4.0",
       url: window.location.href,
       date: new Date().toLocaleString()
     };
 
-    chrome.storage.local.get(['doctorFeedbackLogs', 'githubFeedbackToken'], (res) => {
-      const logs = res.doctorFeedbackLogs || [];
+    chrome.storage.local.get(['doctorFeedbackLogs'], (localRes) => {
+      const logs = localRes.doctorFeedbackLogs || [];
       logs.push(feedbackRecord);
 
       chrome.storage.local.set({ doctorFeedbackLogs: logs }, () => {
-        // If GitHub Token is set by IT admin, silently post issue in background
-        if (res.githubFeedbackToken) {
-          fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
-            method: "POST",
-            headers: {
-              "Authorization": `token ${res.githubFeedbackToken}`,
-              "Content-Type": "application/json",
-              "Accept": "application/vnd.github.v3+json"
-            },
-            body: JSON.stringify({
-              title: `[Doctor Feedback] ${comment.trim().substring(0, 50)}...`,
-              body: `### 🩺 Clinician Report\n${comment}\n\n---\n* **Version**: \`v3.7\`\n* **URL**: \`${window.location.href}\`\n* **Date**: \`${new Date().toLocaleString()}\``,
-              labels: ["doctor-feedback", "triage"]
-            })
-          }).catch(err => console.warn("Background GitHub log silent error:", err));
-        }
+        chrome.storage.sync.get(['feedbackWebhookUrl', 'slackWebhookUrl', 'githubFeedbackToken'], (syncRes) => {
+          // 1. Serverless Gateway Webhook (Google Apps Script / Cloud Function -> Auto GitHub + Slack)
+          if (syncRes.feedbackWebhookUrl) {
+            fetch(syncRes.feedbackWebhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(feedbackRecord)
+            }).catch(err => console.warn("Feedback Webhook silent error:", err));
+          }
 
-        alert("✓ Thank you! Your feedback has been sent directly to Coptic Hospital IT.");
-        if (btnElement) btnElement.innerText = "✓ Feedback Sent!";
+          // 2. Direct Slack Incoming Webhook
+          if (syncRes.slackWebhookUrl) {
+            const slackPayload = {
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: "🩺 New Doctor Feedback / Bug Report", emoji: true } },
+                {
+                  type: "section",
+                  fields: [
+                    { type: "mrkdwn", text: `*Location:*\n${window.location.href}` },
+                    { type: "mrkdwn", text: `*Version:*\n\`v4.0\`` }
+                  ]
+                },
+                { type: "section", text: { type: "mrkdwn", text: `*Clinician Note:*\n>>> ${comment.trim()}` } },
+                { type: "context", elements: [{ type: "mrkdwn", text: `Received at ${new Date().toLocaleString()} | Coptic Hospital Lusaka` }] }
+              ]
+            };
+            fetch(syncRes.slackWebhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(slackPayload)
+            }).catch(err => console.warn("Slack Webhook silent error:", err));
+          }
+
+          // 3. Fallback GitHub Token (if configured)
+          if (syncRes.githubFeedbackToken) {
+            fetch("https://api.github.com/repos/amitry/coptic-gemini-extension/issues", {
+              method: "POST",
+              headers: {
+                "Authorization": `token ${syncRes.githubFeedbackToken}`,
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.github.v3+json"
+              },
+              body: JSON.stringify({
+                title: `[Doctor Feedback] ${comment.trim().substring(0, 50)}...`,
+                body: `### 🩺 Clinician Report\n${comment}\n\n---\n* **Version**: \`v4.0\`\n* **URL**: \`${window.location.href}\`\n* **Date**: \`${new Date().toLocaleString()}\``,
+                labels: ["doctor-feedback", "triage"]
+              })
+            }).catch(err => console.warn("GitHub issue creation silent error:", err));
+          }
+
+          alert("✓ Thank you! Your feedback has been sent directly to Coptic Hospital IT.");
+          if (btnElement) btnElement.innerText = "✓ Feedback Sent!";
+        });
       });
     });
   }
