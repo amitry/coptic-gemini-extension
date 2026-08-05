@@ -7,6 +7,11 @@ import sys
 def print_log(msg):
     print(msg, flush=True)
     sys.stdout.flush()
+    try:
+        with open("deploy_error.txt", "a") as f:
+            f.write(str(msg) + "\n")
+    except Exception:
+        pass
 
 def publish():
     client_id = os.environ.get('CLIENT_ID', '').strip()
