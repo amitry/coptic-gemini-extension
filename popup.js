@@ -116,10 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // Unpacked dev mode notice
-        statusDiv.innerText = "Opening Google AI Studio...";
+        const errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : "OAuth client ID pending configuration";
+        console.warn("Chrome Identity Auth Notice:", errMsg);
+
+        statusDiv.innerText = "Google AI Studio Key Page Opened";
         chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
-        alert("Google Workspace Access:\n\n• For local unpacked testing: Click 'Create API key' in Google AI Studio (opening in new tab) and paste the key below.\n• Production Web Store Build: 1-Click Workspace SSO will authenticate natively once approved on the Chrome Web Store!");
+        alert(`Google Workspace Account Setup:\n\n1. Copy your Gemini API Key from Google AI Studio (opening in new tab).\n2. Paste it in the "Gemini API Key" field below and click "Save Settings".\n\n(Details: ${errMsg})`);
       });
     } else {
       chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
