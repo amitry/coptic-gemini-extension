@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Coptic Hospital - Gemini Assistant",
-  "version": "7.1",
+  "version": "7.2",
   "description": "Clinical Decision Support Assistant & EHR Diagnostic Tool for Coptic Hospital",
   "icons": {
     "16": "icons/icon16.png",
@@ -12,6 +12,13 @@
     "storage",
     "identity"
   ],
+  "oauth2": {
+    "client_id": "1000142398902-sfr9fg00s7vro1ifrqkkru46vgc15214.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
   "host_permissions": [
     "*://*.unumed.net/*"
   ],
