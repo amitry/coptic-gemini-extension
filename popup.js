@@ -14,19 +14,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedbackWebhookUrlInput = document.getElementById("feedbackWebhookUrl");
   const slackWebhookUrlInput = document.getElementById("slackWebhookUrl");
 
+  const authStatusBadge = document.getElementById("authStatusBadge");
+
   function updateAuthUI() {
     chrome.storage.sync.get(['googleAuthToken', 'userEmail', 'geminiApiKey', 'selectedModel', 'feedbackWebhookUrl', 'slackWebhookUrl'], (res) => {
       if (res.userEmail && res.googleAuthToken) {
-        userInfoBox.innerHTML = `✓ Workspace SSO: <b>${res.userEmail}</b>`;
+        if (authStatusBadge) {
+          authStatusBadge.innerHTML = `🟢 Signed In`;
+          authStatusBadge.style.background = `#dcfce7`;
+          authStatusBadge.style.color = `#15803d`;
+          authStatusBadge.style.border = `1px solid #86efac`;
+        }
+        userInfoBox.innerHTML = `✓ Active Workspace SSO: <b>${res.userEmail}</b>`;
         userInfoBox.style.display = "block";
         googleLoginBtn.style.display = "none";
         googleLogoutBtn.style.display = "block";
       } else if (res.geminiApiKey) {
-        userInfoBox.innerHTML = `✓ Active Workspace Key Saved`;
+        if (authStatusBadge) {
+          authStatusBadge.innerHTML = `🟡 Key Active`;
+          authStatusBadge.style.background = `#fef9c3`;
+          authStatusBadge.style.color = `#854d0e`;
+          authStatusBadge.style.border = `1px solid #fde047`;
+        }
+        userInfoBox.innerHTML = `✓ Custom API Key Saved`;
         userInfoBox.style.display = "block";
         googleLoginBtn.style.display = "block";
         googleLogoutBtn.style.display = "none";
       } else {
+        if (authStatusBadge) {
+          authStatusBadge.innerHTML = `⚪ Not Signed In`;
+          authStatusBadge.style.background = `#f1f5f9`;
+          authStatusBadge.style.color = `#64748b`;
+          authStatusBadge.style.border = `1px solid #cbd5e1`;
+        }
         userInfoBox.style.display = "none";
         googleLoginBtn.style.display = "block";
         googleLogoutBtn.style.display = "none";

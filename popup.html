@@ -110,8 +110,11 @@
   
   <!-- Google Workspace Authentication Section -->
   <div class="card-section" style="background: #f0fdf4; border-color: #bbf7d0;">
-    <label style="color: #166534; margin-bottom: 4px;">Authentication (Workspace EDU):</label>
-    <div id="userInfoBox" style="font-size: 11px; margin-bottom: 8px; color: #15803d; display: none;"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <label style="color: #166534; margin: 0;">Authentication (Workspace EDU):</label>
+      <span id="authStatusBadge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">⚪ Not Signed In</span>
+    </div>
+    <div id="userInfoBox" style="font-size: 11px; padding: 6px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; margin-bottom: 8px; color: #15803d; display: none;"></div>
     <button id="googleLoginBtn" style="background: #4285f4; margin-bottom: 6px;">🌐 Sign in with Google Workspace</button>
     <button id="getAiStudioKeyBtn" class="secondary-btn" style="background: #0f766e; color: white; font-size: 11px; margin-bottom: 4px;">🔑 Get Free Key from Google AI Studio</button>
     <button id="googleLogoutBtn" class="secondary-btn" style="display: none; background: #94a3b8; font-size: 11px; padding: 4px;">Sign Out</button>
