@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Quick-link to Google AI Studio for free Workspace key
   getAiStudioKeyBtn.addEventListener("click", () => {
-    chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+    chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey?project=coptic-gemini-chrome-extension" });
   });
 
   const copySavedAnalysisBtn = document.getElementById("copySavedAnalysisBtn");
@@ -140,11 +140,11 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("Chrome Identity Auth Notice:", errMsg);
 
         statusDiv.innerText = "Google AI Studio Key Page Opened";
-        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+        chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey?project=coptic-gemini-chrome-extension" });
         alert(`Google Workspace Account Setup:\n\n1. Copy your Gemini API Key from Google AI Studio (opening in new tab).\n2. Paste it in the "Gemini API Key" field below and click "Save Settings".\n\n(Details: ${errMsg})`);
       });
     } else {
-      chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey" });
+      chrome.tabs.create({ url: "https://aistudio.google.com/app/apikey?project=coptic-gemini-chrome-extension" });
     }
   });
 
